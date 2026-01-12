@@ -45,3 +45,40 @@ export async function fetchPokemons(limit: number = 20, offset: number = 0) {
     }
   }
 }
+
+/**
+ * Fetches a Pokemon species from the PokeAPI.
+ *
+ * @param name - The name of the Pokemon species to fetch
+ * @returns A promise resolving to the Pokemon species data
+ * @throws {PokemonFetchError} When the API request fails
+ *
+ * @example
+ * ```ts
+ * // Fetch Pokemon species by name
+ * const bulbasaur = await fetchPokemonByName("bulbasaur");
+ * ```
+ */
+export async function fetchPokemonByName(name: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/pokemon-species/${name}`, {
+      next: { revalidate: CACHE_REVALIDATE_TIME },
+    });
+    if (!response.ok) {
+      throw new PokemonFetchError(
+        `Failed to fetch ${name}, error: ${response.statusText}`,
+        response.status
+      );
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    if (error instanceof PokemonFetchError) {
+      throw error;
+    } else if (error instanceof Error) {
+      throw new PokemonFetchError(error.message, 500);
+    } else {
+      throw new PokemonFetchError("An unknown error occurred", 500);
+    }
+  }
+}

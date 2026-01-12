@@ -38,7 +38,7 @@ describe("Pokemon Fetch Species List", () => {
       expect(screen.getByText("charmeleon")).toBeInTheDocument();
 
       //Initial pokemons still present
-      expect(screen.getByText("bulbasaur")).toBeInTheDocument();
+      expect(screen.getByText("Wormadam")).toBeInTheDocument();
       expect(screen.getByText("ivysaur")).toBeInTheDocument();
     });
 
@@ -90,7 +90,7 @@ describe("Pokemon Fetch Species List", () => {
       expect(screen.getByText("charmeleon")).toBeInTheDocument();
 
       //Initial pokemons still present
-      expect(screen.getByText("bulbasaur")).toBeInTheDocument();
+      expect(screen.getByText("Wormadam")).toBeInTheDocument();
       expect(screen.getByText("ivysaur")).toBeInTheDocument();
     });
 

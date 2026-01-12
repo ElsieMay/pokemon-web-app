@@ -1,6 +1,6 @@
 export const mockPokemonSpeciesResponse = [
   {
-    name: "bulbasaur",
+    name: "Wormadam",
   },
   {
     name: "ivysaur",
