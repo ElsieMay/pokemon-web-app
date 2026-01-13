@@ -1,5 +1,5 @@
 import { PokemonList } from "@/components/PokemonList";
-// import { fetchPokemons } from "@/lib/pokemon";
+import { PokemonSearch } from "@/components/PokemonSearch";
 
 /**
  * Home page component for the Pokemon Shakespeare Web App.
@@ -15,6 +15,7 @@ export default async function Home() {
         Pokemon Shakespeare Web App
       </h1>
       <PokemonList pokemons={[]} />
+      <PokemonSearch name={""} />
     </main>
   );
 }

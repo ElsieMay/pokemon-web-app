@@ -1,6 +1,9 @@
 import { fetchPokemons, fetchPokemonByName } from "../pokemon";
 import { API_BASE_URL, CACHE_REVALIDATE_TIME } from "../config";
-import { mockPokemonSpeciesResponse } from "../__mocks__/sample";
+import {
+  mockPokemonByNameResponse,
+  mockPokemonSpeciesResponse,
+} from "../__mocks__/sample";
 import { PokemonFetchError } from "@/types/error";
 
 global.fetch = jest.fn();
@@ -135,7 +138,7 @@ describe("fetch Pokemon by name", () => {
   const pokemonName = "Wormadam";
 
   it("should fetch a single Pokemon by name successfully", async () => {
-    const mockResponse = mockPokemonSpeciesResponse[0];
+    const mockResponse = mockPokemonByNameResponse;
 
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,

@@ -32,11 +32,6 @@ export interface ApiErrorResponse extends ApiBaseResponse {
  * @example
  * ```ts
  * const response: ApiResponse<Pokemon[]> = await loadPokemons();
- * if (response.success) {
- *   console.log(response.data); // Type: Pokemon[]
- * } else {
- *   console.error(response.error, response.status); // Type: string, number
- * }
  * ```
  */
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;

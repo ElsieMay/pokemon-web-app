@@ -4,7 +4,8 @@ import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
 import { fetchPokemonByName, fetchPokemons } from "@/lib/pokemon";
 import { ApiResponse } from "@/types/api";
 import { PokemonFetchError } from "@/types/error";
-import { Pokemon } from "@/types/pokemon";
+import { Pokemon, PokemonDetails } from "@/types/pokemon";
+import { getFirstEnglishDescription } from "@/lib/utils";
 
 /**
  * Server action to load a list of Pokemon species from the PokeAPI.
@@ -18,11 +19,6 @@ import { Pokemon } from "@/types/pokemon";
  * @example
  * ```tsx
  * const result = await loadPokemons(0);
- * if (result.success) {
- *   console.log(result.data); // Pokemon[]
- * } else {
- *   console.error(result.error, result.status);
- * }
  * ```
  */
 export async function loadPokemons(
@@ -61,26 +57,24 @@ export async function loadPokemons(
  * It handles errors gracefully and returns a structured API response.
  *
  * @param name - The name of the Pokemon species to search for
- * @returns A promise resolving to an ApiResponse containing the Pokemon data or error details
+ * @returns A promise resolving to an ApiResponse containing the Pokemon details or error details
  *
  * @example
  * ```tsx
- * const result = await searchPokemonByName("Bagworm");
- * if (result.success) {
- *   console.log(result.data); // Pokemon
- * } else {
- *   console.error(result.error, result.status);
- * }
+ * const result = await searchPokemonByName("Wormadam");
  * ```
  */
 export async function searchPokemonByName(
   name: string
-): Promise<ApiResponse<Pokemon>> {
+): Promise<ApiResponse<PokemonDetails>> {
   try {
     const pokemon = await fetchPokemonByName(name);
     return {
       success: true,
-      data: pokemon,
+      data: {
+        name: pokemon.name,
+        description: getFirstEnglishDescription(pokemon),
+      },
     };
   } catch (error) {
     if (error instanceof PokemonFetchError) {
@@ -90,7 +84,6 @@ export async function searchPokemonByName(
         status: error.status,
       };
     }
-
     return {
       success: false,
       error:

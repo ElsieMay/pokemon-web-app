@@ -1,4 +1,4 @@
-import { PokemonListSchema } from "@/types/pokemon";
+import { PokemonListSchema, PokemonSchema } from "@/types/pokemon";
 import { API_BASE_URL, CACHE_REVALIDATE_TIME } from "./config";
 import { PokemonFetchError } from "@/types/error";
 
@@ -71,7 +71,12 @@ export async function fetchPokemonByName(name: string) {
       );
     }
     const data = await response.json();
-    return data;
+    // Extract name and flavor text entries from the API response
+    const validated = PokemonSchema.parse(data);
+    return {
+      name: validated.name,
+      flavor_text_entries: validated.flavor_text_entries,
+    };
   } catch (error) {
     if (error instanceof PokemonFetchError) {
       throw error;

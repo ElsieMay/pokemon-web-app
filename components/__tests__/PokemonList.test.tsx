@@ -16,6 +16,7 @@ describe("Pokemon Fetch Species List", () => {
     jest.clearAllMocks();
   });
 
+  // Render initial pokemons - success case
   it("should fetch Pokemons when button is clicked", async () => {
     mockLoadPokemons.mockResolvedValue({
       success: true,
@@ -45,6 +46,7 @@ describe("Pokemon Fetch Species List", () => {
     expect(mockLoadPokemons).toHaveBeenCalledWith(2);
   });
 
+  // Fetch pokemons - failure case with retry handling
   it("if fetching pokemons fails, should allow user to refetch", async () => {
     mockLoadPokemons.mockResolvedValueOnce({
       success: false,
