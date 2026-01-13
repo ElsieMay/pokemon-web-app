@@ -40,3 +40,13 @@ export const mockPokemonNameAndDescription = {
   name: "Pikachu",
   description: "A yellow electric mouse.",
 };
+
+export const mockFavouritePokemon = {
+  id: 1,
+  pokemon_name: "Pikachu",
+  pokemon_id: 25,
+  user_id: "user123",
+  created_at: new Date(),
+  shakespearean_description: "A wondrous electric mouse.",
+  original_description: "A yellow mouse-like Pokémon.",
+};

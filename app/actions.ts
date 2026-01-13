@@ -1,9 +1,16 @@
 "use server";
 
+import { getSessionId } from "@/lib/session";
+import { addFavourite } from "@/lib/favourites";
+import { FavouritePokemon } from "@/types/favourite";
 import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
 import { fetchPokemonByName, fetchPokemons } from "@/lib/pokemon";
 import { ApiResponse } from "@/types/api";
-import { PokemonFetchError, TranslationFetchError } from "@/types/error";
+import {
+  FavouriteStoreError,
+  PokemonFetchError,
+  TranslationFetchError,
+} from "@/types/error";
 import { Pokemon, PokemonDetails } from "@/types/pokemon";
 import { getFirstEnglishDescription } from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
@@ -124,6 +131,52 @@ export async function translatePokemonDescription(
         error instanceof Error
           ? error.message
           : "An unknown error occurred while translating the description",
+      status: 500,
+    };
+  }
+}
+/**
+ * Add a Pokemon to the current user's favourites
+ */
+export async function addToFavourites({
+  pokemonName,
+  pokemonId,
+  shakespeareanDescription,
+  originalDescription,
+}: {
+  pokemonName: string;
+  pokemonId: number;
+  shakespeareanDescription: string;
+  originalDescription: string;
+}): Promise<ApiResponse<FavouritePokemon>> {
+  try {
+    const userId = await getSessionId();
+    const favourite = await addFavourite(
+      pokemonName,
+      pokemonId,
+      shakespeareanDescription,
+      originalDescription,
+      userId
+    );
+
+    return {
+      success: true,
+      data: favourite,
+    };
+  } catch (error) {
+    if (error instanceof FavouriteStoreError) {
+      return {
+        success: false,
+        error: error.message,
+        status: error.status,
+      };
+    }
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while adding to favourites",
       status: 500,
     };
   }

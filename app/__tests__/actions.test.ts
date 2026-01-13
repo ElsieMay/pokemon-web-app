@@ -1,16 +1,24 @@
 import {
   mockAdditionalPokemonSpeciesResponse,
+  mockFavouritePokemon,
   mockPokemonByNameResponse,
 } from "@/lib/__mocks__/sample";
 import {
   loadPokemons,
   searchPokemonByName,
   translatePokemonDescription,
+  addToFavourites,
 } from "../actions";
 import { fetchPokemons, fetchPokemonByName } from "@/lib/pokemon";
-import { PokemonFetchError, TranslationFetchError } from "@/types/error";
+import {
+  PokemonFetchError,
+  TranslationFetchError,
+  FavouriteStoreError,
+} from "@/types/error";
 import { getFirstEnglishDescription } from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
+import { getSessionId } from "@/lib/session";
+import { addFavourite } from "@/lib/favourites";
 
 jest.mock("@/lib/pokemon");
 const mockFetchPokemons = fetchPokemons as jest.MockedFunction<
@@ -19,11 +27,21 @@ const mockFetchPokemons = fetchPokemons as jest.MockedFunction<
 const mockFetchPokemonByName = fetchPokemonByName as jest.MockedFunction<
   typeof fetchPokemonByName
 >;
+
 jest.mock("@/lib/shakespeare");
 const mockTranslatePokemonDescription =
   fetchPokemonTranslation as jest.MockedFunction<
     typeof fetchPokemonTranslation
   >;
+
+jest.mock("@/lib/session");
+jest.mock("@/lib/favourites");
+const mockGetSessionId = getSessionId as jest.MockedFunction<
+  typeof getSessionId
+>;
+const mockAddFavourite = addFavourite as jest.MockedFunction<
+  typeof addFavourite
+>;
 
 // Tests for fetching a list of Pokemons
 describe("Pokemon Fetch Species List", () => {
@@ -293,5 +311,127 @@ describe("Translate Pokemon Description to Shakespearean", () => {
       );
       expect(response.status).toBe(500);
     }
+  });
+});
+
+describe("add to favourites", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const mockSessionId = "user-123";
+
+  // Test adding a Pokemon to favourites - success case
+  it("should add a Pokemon to favourites successfully", async () => {
+    mockGetSessionId.mockResolvedValue(mockSessionId);
+    mockAddFavourite.mockResolvedValue(mockFavouritePokemon);
+
+    const sessionId = await getSessionId();
+    expect(sessionId).toBe(mockSessionId);
+
+    const response = await addToFavourites({
+      pokemonName: mockFavouritePokemon.pokemon_name,
+      pokemonId: mockFavouritePokemon.pokemon_id,
+      shakespeareanDescription: mockFavouritePokemon.shakespearean_description,
+      originalDescription: mockFavouritePokemon.original_description,
+    });
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockAddFavourite).toHaveBeenCalledWith(
+      mockFavouritePokemon.pokemon_name,
+      mockFavouritePokemon.pokemon_id,
+      mockFavouritePokemon.shakespearean_description,
+      mockFavouritePokemon.original_description,
+      mockSessionId
+    );
+    expect(response).toEqual({ data: mockFavouritePokemon, success: true });
+  });
+
+  // Test should handle when session ID is not available
+  it("should throw an error when session ID is not available", async () => {
+    mockGetSessionId.mockRejectedValue(mockSessionId);
+
+    await expect(
+      addToFavourites({
+        pokemonName: mockFavouritePokemon.pokemon_name,
+        pokemonId: mockFavouritePokemon.pokemon_id,
+        shakespeareanDescription:
+          mockFavouritePokemon.shakespearean_description,
+        originalDescription: mockFavouritePokemon.original_description,
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: "An unknown error occurred while adding to favourites",
+      status: 500,
+    });
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockAddFavourite).not.toHaveBeenCalled();
+  });
+
+  // Test adding a Pokemon to favourites - failure case
+  it("should handle errors when adding a Pokemon to favourites fails", async () => {
+    mockGetSessionId.mockResolvedValue(mockSessionId);
+    mockAddFavourite.mockRejectedValue(
+      new FavouriteStoreError("Database Error", 500)
+    );
+
+    const sessionId = await getSessionId();
+    expect(sessionId).toBe(mockSessionId);
+
+    await expect(
+      addToFavourites({
+        pokemonName: mockFavouritePokemon.pokemon_name,
+        pokemonId: mockFavouritePokemon.pokemon_id,
+        shakespeareanDescription:
+          mockFavouritePokemon.shakespearean_description,
+        originalDescription: mockFavouritePokemon.original_description,
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: "Database Error",
+      status: 500,
+    });
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockAddFavourite).toHaveBeenCalledWith(
+      mockFavouritePokemon.pokemon_name,
+      mockFavouritePokemon.pokemon_id,
+      mockFavouritePokemon.shakespearean_description,
+      mockFavouritePokemon.original_description,
+      mockSessionId
+    );
+  });
+
+  // Test error handling for generic errors
+  it("should handle errors when adding a Pokemon to favourites fails and not FavouriteStoreError", async () => {
+    mockGetSessionId.mockResolvedValue(mockSessionId);
+    mockAddFavourite.mockRejectedValue(new Error("Service Error"));
+
+    const sessionId = await getSessionId();
+    expect(sessionId).toBe(mockSessionId);
+
+    await expect(
+      addToFavourites({
+        pokemonName: mockFavouritePokemon.pokemon_name,
+        pokemonId: mockFavouritePokemon.pokemon_id,
+        shakespeareanDescription:
+          mockFavouritePokemon.shakespearean_description,
+        originalDescription: mockFavouritePokemon.original_description,
+      })
+    ).resolves.toEqual({
+      success: false,
+      error: "Service Error",
+      status: 500,
+    });
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockAddFavourite).toHaveBeenCalledWith(
+      mockFavouritePokemon.pokemon_name,
+      mockFavouritePokemon.pokemon_id,
+      mockFavouritePokemon.shakespearean_description,
+      mockFavouritePokemon.original_description,
+      mockSessionId
+    );
   });
 });

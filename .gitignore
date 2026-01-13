@@ -55,6 +55,11 @@ logs/
 wrangler.toml
 .dev.vars
 
+# Temporary test files
+test-db.ts
+test-*.ts
+*.temp.ts
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
