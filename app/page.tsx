@@ -15,7 +15,10 @@ export default async function Home() {
         Pokemon Shakespeare Web App
       </h1>
       <PokemonList pokemons={[]} />
-      <PokemonSearch name={""} />
+      <h2 className="text-2xl font-semibold mt-12 mb-6 text-gray-900 dark:text-gray-100">
+        Which Pokemon would you like to search for?
+      </h2>
+      <PokemonSearch />
     </main>
   );
 }

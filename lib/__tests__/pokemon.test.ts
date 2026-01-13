@@ -1,5 +1,5 @@
 import { fetchPokemons, fetchPokemonByName } from "../pokemon";
-import { API_BASE_URL, CACHE_REVALIDATE_TIME } from "../config";
+import { API_POKE_BASE_URL, CACHE_REVALIDATE_TIME } from "../config";
 import {
   mockPokemonByNameResponse,
   mockPokemonSpeciesResponse,
@@ -8,11 +8,17 @@ import { PokemonFetchError } from "@/types/error";
 
 global.fetch = jest.fn();
 
+const getExpectedFetchConfig = () =>
+  expect.objectContaining({
+    next: { revalidate: CACHE_REVALIDATE_TIME },
+  });
+
 describe("fetchPokemons", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  // Test for fetching list of Pokemons - success case
   it("should fetch and return a list of Pokemons successfully", async () => {
     const mockResponse = {
       results: mockPokemonSpeciesResponse,
@@ -26,14 +32,13 @@ describe("fetchPokemons", () => {
     const result = await fetchPokemons(2, 0);
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species?limit=2&offset=0`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species?limit=2&offset=0`,
+      getExpectedFetchConfig()
     );
     expect(result).toEqual(mockResponse.results);
   });
 
+  // Test for fetching list of Pokemons - failure cases
   it("should PokemonFetchError throw an error when response is not ok", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
@@ -49,13 +54,12 @@ describe("fetchPokemons", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species?limit=2&offset=0`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species?limit=2&offset=0`,
+      getExpectedFetchConfig()
     );
   });
 
+  // Test for fetching list of Pokemons - error during fetch
   it("should throw PokemonFetchError when an error occurs", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Network Error"));
 
@@ -73,14 +77,13 @@ describe("fetchPokemons", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species?limit=2&offset=0`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species?limit=2&offset=0`,
+      getExpectedFetchConfig()
     );
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
+  // Test for fetching list of Pokemons - non-Error thrown
   it("should throw PokemonFetchError with unknown error message when a non-Error is thrown", async () => {
     (global.fetch as jest.Mock).mockRejectedValue({});
 
@@ -91,10 +94,8 @@ describe("fetchPokemons", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species?limit=2&offset=0`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species?limit=2&offset=0`,
+      getExpectedFetchConfig()
     );
   });
 
@@ -110,6 +111,7 @@ describe("fetchPokemons", () => {
     },
   ];
 
+  // Test for fetching list of Pokemons - invalid response structure
   invalidResponses.forEach((invalid) => {
     it(`should throw PokemonFetchError when response has invalid structure: ${JSON.stringify(
       invalid
@@ -122,21 +124,21 @@ describe("fetchPokemons", () => {
       await expect(fetchPokemons(2, 0)).rejects.toThrow(PokemonFetchError);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${API_BASE_URL}/pokemon-species?limit=2&offset=0`,
-        expect.objectContaining({
-          next: { revalidate: CACHE_REVALIDATE_TIME },
-        })
+        `${API_POKE_BASE_URL}/pokemon-species?limit=2&offset=0`,
+        getExpectedFetchConfig()
       );
     });
   });
 });
 
+// Tests for fetchPokemonByName
 describe("fetch Pokemon by name", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
   const pokemonName = "Wormadam";
 
+  // Test for fetching a single Pokemon by name - success case
   it("should fetch a single Pokemon by name successfully", async () => {
     const mockResponse = mockPokemonByNameResponse;
 
@@ -150,14 +152,13 @@ describe("fetch Pokemon by name", () => {
     );
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species/${mockPokemonSpeciesResponse[0]?.name}`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species/${mockPokemonSpeciesResponse[0]?.name}`,
+      getExpectedFetchConfig()
     );
     expect(result).toEqual(mockResponse);
   });
 
+  // Test for fetching a single Pokemon by name - not found case
   it("should throw PokemonFetchError when pokemon is not found", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
@@ -175,13 +176,12 @@ describe("fetch Pokemon by name", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species/unknown-pokemon`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species/unknown-pokemon`,
+      getExpectedFetchConfig()
     );
   });
 
+  // Test for fetching a single Pokemon by name - error during fetch
   it("should throw PokemonFetchError when an error occurs", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Network Error"));
 
@@ -199,14 +199,13 @@ describe("fetch Pokemon by name", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species/${pokemonName}`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species/${pokemonName}`,
+      getExpectedFetchConfig()
     );
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
+  // Test for fetching a single Pokemon by name - non-Error thrown
   it("should throw PokemonFetchError with unknown error message when a non-Error is thrown", async () => {
     (global.fetch as jest.Mock).mockRejectedValue({});
 
@@ -219,10 +218,8 @@ describe("fetch Pokemon by name", () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      `${API_BASE_URL}/pokemon-species/${pokemonName}`,
-      expect.objectContaining({
-        next: { revalidate: CACHE_REVALIDATE_TIME },
-      })
+      `${API_POKE_BASE_URL}/pokemon-species/${pokemonName}`,
+      getExpectedFetchConfig()
     );
   });
 });

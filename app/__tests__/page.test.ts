@@ -17,7 +17,7 @@ describe("Home page", () => {
   it("should render PokemonList component", async () => {
     const home = await Home();
     render(home);
-    expect(screen.getByText("Fetch Pokemons...")).toBeInTheDocument();
+    expect(screen.getByText("Present Some Pokemon Names")).toBeInTheDocument();
     expect(PokemonList).toBeDefined();
   });
 });

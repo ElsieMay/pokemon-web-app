@@ -45,7 +45,7 @@ export function PokemonList({ pokemons }: PokemonListProps) {
   };
 
   return (
-    <div>
+    <div className="pb-12">
       {error ? (
         <div className="w-full flex flex-col items-center">
           <p className="mt-4 text-red-500">{error}</p>
@@ -59,7 +59,7 @@ export function PokemonList({ pokemons }: PokemonListProps) {
         </div>
       ) : (
         <div className="w-full flex flex-col items-center">
-          <ul className="mt-4">
+          <ul className="mt-4 grid grid-cols-3 gap-x-8 list-disc list-inside">
             {pokemonList.map((pokemon: Pokemon) => (
               <li
                 key={pokemon.name}
@@ -74,7 +74,7 @@ export function PokemonList({ pokemons }: PokemonListProps) {
             onClick={() => fetchPokemonList()}
             disabled={loading}
           >
-            {loading ? "Loading..." : "Fetch Pokemons..."}
+            {loading ? "Loading..." : "Present Some Pokemon Names"}
           </button>
         </div>
       )}

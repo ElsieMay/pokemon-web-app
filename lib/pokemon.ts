@@ -1,5 +1,5 @@
 import { PokemonListSchema, PokemonSchema } from "@/types/pokemon";
-import { API_BASE_URL, CACHE_REVALIDATE_TIME } from "./config";
+import { API_POKE_BASE_URL, CACHE_REVALIDATE_TIME } from "./config";
 import { PokemonFetchError } from "@/types/error";
 
 /**
@@ -22,7 +22,7 @@ import { PokemonFetchError } from "@/types/error";
 export async function fetchPokemons(limit: number = 20, offset: number = 0) {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/pokemon-species?limit=${limit}&offset=${offset}`,
+      `${API_POKE_BASE_URL}/pokemon-species?limit=${limit}&offset=${offset}`,
       {
         next: { revalidate: CACHE_REVALIDATE_TIME },
       }
@@ -61,9 +61,12 @@ export async function fetchPokemons(limit: number = 20, offset: number = 0) {
  */
 export async function fetchPokemonByName(name: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/pokemon-species/${name}`, {
-      next: { revalidate: CACHE_REVALIDATE_TIME },
-    });
+    const response = await fetch(
+      `${API_POKE_BASE_URL}/pokemon-species/${name}`,
+      {
+        next: { revalidate: CACHE_REVALIDATE_TIME },
+      }
+    );
     if (!response.ok) {
       throw new PokemonFetchError(
         `Failed to fetch ${name}, error: ${response.statusText}`,

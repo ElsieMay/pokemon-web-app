@@ -26,7 +26,7 @@ describe("Pokemon Fetch Species List", () => {
     render(<PokemonList pokemons={mockPokemonSpeciesResponse} />);
 
     const fetchButton = screen.getByRole("button", {
-      name: /Fetch Pokemons.../i,
+      name: /Present Some Pokemon Names/i,
     });
     fireEvent.click(fetchButton);
 
@@ -57,7 +57,7 @@ describe("Pokemon Fetch Species List", () => {
     render(<PokemonList pokemons={mockPokemonSpeciesResponse} />);
 
     const fetchButton = screen.getByRole("button", {
-      name: /Fetch Pokemons.../i,
+      name: /Present Some Pokemon Names/i,
     });
     fireEvent.click(fetchButton);
 

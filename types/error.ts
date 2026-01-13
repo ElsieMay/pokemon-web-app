@@ -15,3 +15,14 @@ export class PokemonFetchError extends Error {
     this.name = "PokemonFetchError";
   }
 }
+
+export class TranslationFetchError extends Error {
+  /**
+   * @param message - Error message
+   * @param status - HTTP status code
+   */
+  constructor(message: string, public status: number) {
+    super(message);
+    this.name = "TranslationFetchError";
+  }
+}

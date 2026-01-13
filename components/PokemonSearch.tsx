@@ -2,9 +2,11 @@
 
 import { searchPokemonByName } from "@/app/actions";
 import { useState } from "react";
+import { TranslationBlock } from "./TranslationBlock";
+import { PokemonDetails } from "@/types/pokemon";
 
 interface PokemonSearchProps {
-  name: string;
+  name?: string;
 }
 
 /**
@@ -19,9 +21,11 @@ interface PokemonSearchProps {
  * ```
  */
 export function PokemonSearch({ name }: PokemonSearchProps) {
-  const [pokemon, setPokemon] = useState(name);
+  const [pokemon, setPokemon] = useState(name || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pokemonData, setPokemonData] = useState<PokemonDetails | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   /**
    * Fetches a Pokemon by name and updates the state.
@@ -29,13 +33,16 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
    */
   const fetchPokemonByName = async () => {
     setLoading(true);
+    setHasSearched(true);
 
     const response = await searchPokemonByName(pokemon);
 
     if (response.success) {
       setError(null);
+      setPokemonData(response.data);
     } else {
       setError(`Error fetching ${pokemon}: ` + response.error);
+      setPokemonData(null);
     }
 
     setLoading(false);
@@ -73,10 +80,13 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
           <button
             className="btn-primary mt-6"
             onClick={() => fetchPokemonByName()}
-            disabled={loading || pokemon.trim() === ""}
+            disabled={loading || pokemon?.trim() === ""}
           >
             {loading ? "Loading..." : "Search for Pokemon"}
           </button>
+          {hasSearched && pokemonData && (
+            <TranslationBlock pokemon={pokemonData} />
+          )}
         </div>
       )}
     </div>
