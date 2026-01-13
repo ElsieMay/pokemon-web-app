@@ -2,10 +2,15 @@ import {
   mockAdditionalPokemonSpeciesResponse,
   mockPokemonByNameResponse,
 } from "@/lib/__mocks__/sample";
-import { loadPokemons, searchPokemonByName } from "../actions";
+import {
+  loadPokemons,
+  searchPokemonByName,
+  translatePokemonDescription,
+} from "../actions";
 import { fetchPokemons, fetchPokemonByName } from "@/lib/pokemon";
-import { PokemonFetchError } from "@/types/error";
+import { PokemonFetchError, TranslationFetchError } from "@/types/error";
 import { getFirstEnglishDescription } from "@/lib/utils";
+import { fetchPokemonTranslation } from "@/lib/shakespeare";
 
 jest.mock("@/lib/pokemon");
 const mockFetchPokemons = fetchPokemons as jest.MockedFunction<
@@ -14,6 +19,11 @@ const mockFetchPokemons = fetchPokemons as jest.MockedFunction<
 const mockFetchPokemonByName = fetchPokemonByName as jest.MockedFunction<
   typeof fetchPokemonByName
 >;
+jest.mock("@/lib/shakespeare");
+const mockTranslatePokemonDescription =
+  fetchPokemonTranslation as jest.MockedFunction<
+    typeof fetchPokemonTranslation
+  >;
 
 // Tests for fetching a list of Pokemons
 describe("Pokemon Fetch Species List", () => {
@@ -213,5 +223,75 @@ describe("Fetch Pokemon by Name", () => {
       expect(response.status).toBe(500);
     }
     expect(mockFetchPokemonByName).toHaveBeenCalledWith(pokemonName);
+  });
+});
+
+describe("Translate Pokemon Description to Shakespearean", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const translatedDescription = "A valiant Pokemon.";
+  const description = "A brave and strong Pokemon.";
+
+  // Test translation of a Pokemon description - success case
+  it("should call translatePokemonDescription and return translated description", async () => {
+    mockTranslatePokemonDescription.mockResolvedValue(translatedDescription);
+
+    const response = await translatePokemonDescription(description);
+
+    expect(mockTranslatePokemonDescription).toHaveBeenCalledWith(description);
+    expect(response.success).toBe(true);
+    if (response.success) {
+      expect(response.data).toBe(translatedDescription);
+    }
+  });
+
+  // Test translation of a Pokemon description - error case
+  it("should handle errors when translating description for TranslationFetchError", async () => {
+    mockTranslatePokemonDescription.mockRejectedValue(
+      new TranslationFetchError("Translation Service Unavailable", 503)
+    );
+
+    const response = await translatePokemonDescription(description);
+
+    expect(mockTranslatePokemonDescription).toHaveBeenCalledWith(description);
+    expect(response.success).toBe(false);
+    if (!response.success) {
+      expect(response.error).toBe("Translation Service Unavailable");
+      expect(response.status).toBe(503);
+    }
+  });
+
+  // Test translation of a Pokemon description - generic error case
+  it("should handle errors when translating description fails and not TranslationFetchError", async () => {
+    mockTranslatePokemonDescription.mockRejectedValue(
+      new Error("Service Error")
+    );
+
+    const response = await translatePokemonDescription(description);
+
+    expect(mockTranslatePokemonDescription).toHaveBeenCalledWith(description);
+    expect(response.success).toBe(false);
+    if (!response.success) {
+      expect(response.error).toBe("Service Error");
+      expect(response.status).toBe(500);
+    }
+  });
+
+  // Test default error message when no message is provided
+  it("if error message is not available, use default error message", async () => {
+    mockTranslatePokemonDescription.mockRejectedValue({});
+
+    const response = await translatePokemonDescription(description);
+
+    expect(mockTranslatePokemonDescription).toHaveBeenCalledWith(description);
+    expect(response.success).toBe(false);
+    if (!response.success) {
+      expect(response.error).toBe(
+        "An unknown error occurred while translating the description"
+      );
+      expect(response.status).toBe(500);
+    }
   });
 });

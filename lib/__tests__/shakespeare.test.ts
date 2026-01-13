@@ -2,7 +2,7 @@ import {
   API_SHAKESPEARE_TRANSLATION_URL,
   CACHE_REVALIDATE_TIME,
 } from "../config";
-import { translatePokemonDescription } from "../shakespeare";
+import { fetchPokemonTranslation } from "../shakespeare";
 import { TranslationFetchError } from "@/types/error";
 
 global.fetch = jest.fn();
@@ -38,7 +38,7 @@ describe("fetch Shakespeare translation", () => {
       json: async () => mockResponse,
     });
 
-    const result = await translatePokemonDescription(pokemonDescription);
+    const result = await fetchPokemonTranslation(pokemonDescription);
 
     expect(global.fetch).toHaveBeenCalledWith(
       `${API_SHAKESPEARE_TRANSLATION_URL}`,
@@ -55,9 +55,7 @@ describe("fetch Shakespeare translation", () => {
       status: 500,
     });
 
-    await expect(
-      translatePokemonDescription(pokemonDescription)
-    ).rejects.toThrow(
+    await expect(fetchPokemonTranslation(pokemonDescription)).rejects.toThrow(
       new TranslationFetchError(
         `Failed to translate description: Internal Server Error`,
         500
@@ -76,7 +74,7 @@ describe("fetch Shakespeare translation", () => {
 
     let thrownError;
     try {
-      await translatePokemonDescription(pokemonDescription);
+      await fetchPokemonTranslation(pokemonDescription);
     } catch (error) {
       thrownError = error;
     }
@@ -102,7 +100,7 @@ describe("fetch Shakespeare translation", () => {
 
     let thrownError;
     try {
-      await translatePokemonDescription(pokemonDescription);
+      await fetchPokemonTranslation(pokemonDescription);
     } catch (error) {
       thrownError = error;
     }

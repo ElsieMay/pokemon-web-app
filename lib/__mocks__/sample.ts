@@ -35,3 +35,8 @@ export const mockPokemonByNameResponse = {
     },
   ],
 };
+
+export const mockPokemonNameAndDescription = {
+  name: "Pikachu",
+  description: "A yellow electric mouse.",
+};

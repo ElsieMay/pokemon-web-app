@@ -3,9 +3,10 @@
 import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
 import { fetchPokemonByName, fetchPokemons } from "@/lib/pokemon";
 import { ApiResponse } from "@/types/api";
-import { PokemonFetchError } from "@/types/error";
+import { PokemonFetchError, TranslationFetchError } from "@/types/error";
 import { Pokemon, PokemonDetails } from "@/types/pokemon";
 import { getFirstEnglishDescription } from "@/lib/utils";
+import { fetchPokemonTranslation } from "@/lib/shakespeare";
 
 /**
  * Server action to load a list of Pokemon species from the PokeAPI.
@@ -90,6 +91,39 @@ export async function searchPokemonByName(
         error instanceof Error
           ? error.message
           : "An unknown error occurred while fetching the Pokemon",
+      status: 500,
+    };
+  }
+}
+
+/**
+ * Translates a Pokemon description to Shakespearean English
+ * @param description - The description to translate
+ * @returns ApiResponse containing the translated description or error
+ */
+export async function translatePokemonDescription(
+  description: string
+): Promise<ApiResponse<string>> {
+  try {
+    const translatedDescription = await fetchPokemonTranslation(description);
+    return {
+      success: true,
+      data: translatedDescription,
+    };
+  } catch (error) {
+    if (error instanceof TranslationFetchError) {
+      return {
+        success: false,
+        error: error.message,
+        status: error.status,
+      };
+    }
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while translating the description",
       status: 500,
     };
   }

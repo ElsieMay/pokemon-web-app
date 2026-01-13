@@ -16,7 +16,7 @@ import {
  * const translated = await translatePokemonDescription("A brave Pokemon.");
  * ```
  */
-export async function translatePokemonDescription(description: string) {
+export async function fetchPokemonTranslation(description: string) {
   try {
     const response = await fetch(`${API_SHAKESPEARE_TRANSLATION_URL}`, {
       method: "POST",
