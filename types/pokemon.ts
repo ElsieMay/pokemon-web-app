@@ -46,10 +46,14 @@ export const PokemonSchema = z.object({
 export type Pokemon = z.infer<typeof PokemonSchema>;
 
 /**
- * Validates response contains a results array of Pokemons.
+ * Schema for Pokemon list items (only name and url from list endpoint)
  */
 export const PokemonListSchema = z.object({
-  results: z.array(PokemonSchema),
+  results: z.array(
+    z.object({
+      name: z.string(),
+    })
+  ),
 });
 
 /**

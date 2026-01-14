@@ -1,12 +1,12 @@
 "use client";
 
 import { loadPokemons } from "@/app/actions";
-import { Pokemon } from "@/types/pokemon";
+import { PokemonList } from "@/types/pokemon";
 import { useState } from "react";
 
 interface PokemonListProps {
   /** Initial list of Pokemons */
-  pokemons: Pokemon[];
+  pokemons: PokemonList;
 }
 
 /**
@@ -20,7 +20,7 @@ interface PokemonListProps {
  * <PokemonList pokemons={[]} />
  * ```
  */
-export function PokemonList({ pokemons }: PokemonListProps) {
+export function Pokemons({ pokemons }: PokemonListProps) {
   const [pokemonList, setPokemonList] = useState(pokemons);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,17 +32,37 @@ export function PokemonList({ pokemons }: PokemonListProps) {
   const fetchPokemonList = async () => {
     setLoading(true);
 
-    const response = await loadPokemons(pokemonList.length);
+    const response = await loadPokemons(pokemonList?.results?.length ?? 0);
 
     if (response.success) {
-      setPokemonList([...pokemonList, ...response.data]);
+      setPokemonList((prev) => ({
+        results: [...(prev.results ?? []), ...response.data.results],
+      }));
       setError(null);
     } else {
-      setError("Error fetching Pokemons: " + response.error);
+      setError("Unable to load Pokémon. Please try again.");
     }
 
     setLoading(false);
   };
+
+  // Safety check for initial data
+  if (!pokemonList || !pokemonList.results) {
+    return (
+      <div className="w-full flex flex-col items-center pb-12">
+        <p className="text-gray-700 dark:text-gray-300 mb-4">
+          No Pokémon data available as yet.
+        </p>
+        <button
+          className="btn-primary"
+          onClick={() => fetchPokemonList()}
+          disabled={loading}
+        >
+          {loading ? "Loading..." : "Load Pokémon"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-12">
@@ -60,7 +80,7 @@ export function PokemonList({ pokemons }: PokemonListProps) {
       ) : (
         <div className="w-full flex flex-col items-center">
           <ul className="mt-4 grid grid-cols-3 gap-x-8 list-disc list-inside">
-            {pokemonList.map((pokemon: Pokemon) => (
+            {pokemonList.results.map((pokemon) => (
               <li
                 key={pokemon.name}
                 className="text-slate-700 dark:text-slate-300 capitalize"

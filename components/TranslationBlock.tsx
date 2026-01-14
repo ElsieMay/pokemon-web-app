@@ -21,6 +21,7 @@ export function TranslationBlock({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingSave, setLoadingSave] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   /**
    * Fetches Shakespearean translation for a given description.
@@ -77,6 +78,8 @@ export function TranslationBlock({
       setError(null);
       //TODO: Show success message to user
       console.log(`${pokemon?.name} saved to favourites successfully.`);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } else {
       setError(`Error saving to favourites: ` + response.error);
     }
@@ -85,57 +88,66 @@ export function TranslationBlock({
   };
 
   return (
-    <div className="mt-6 p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
-      <h6 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100 capitalize">
-        {pokemon?.name || "Unknown Pokemon"}
-      </h6>
-      <p className="text-gray-700 dark:text-gray-300">
-        {pokemon?.description || "No description available."}
-      </p>
-      {error ? (
-        <div className="w-full flex flex-col items-center">
-          <p className="mt-4 text-red-500">{error}</p>
-          <button
-            className="btn-primary mt-6"
-            onClick={() => fetchShakespeareTranslation()}
-            disabled={loading}
-          >
-            {loading ? "Retrying..." : "Retry Search"}
-          </button>
-          X
-        </div>
-      ) : (
-        <div className="w-full flex flex-col items-center gap-2">
-          {!isTranslated ? (
+    <div className="mt-6 p-4 rounded-lg">
+      <div className="mt-6 p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
+        <h6 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100 capitalize">
+          {pokemon?.name || "Unknown Pokemon"}
+        </h6>
+        <p className="text-gray-700 dark:text-gray-300">
+          {pokemon?.description || "No description available."}
+        </p>
+
+        {error ? (
+          <div className="w-full flex flex-col items-center">
+            <p className="mt-4 text-red-500">{error}</p>
             <button
               className="btn-primary mt-6"
               onClick={() => fetchShakespeareTranslation()}
               disabled={loading}
             >
-              {loading ? "Loading..." : "Translate to Shakespearean English"}
+              {loading ? "Retrying..." : "Retry Search"}
             </button>
-          ) : (
-            <div>
+            X
+          </div>
+        ) : (
+          <div className="w-full flex flex-col items-center gap-2">
+            {!isTranslated ? (
               <button
                 className="btn-primary mt-6"
-                onClick={() => resetToOriginal()}
+                onClick={() => fetchShakespeareTranslation()}
+                disabled={loading}
               >
-                Show Original Description
+                {loading ? "Loading..." : "Translate to Shakespearean English"}
               </button>
-              <h6 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100 capitalize">
-                Would you like to add this Pokemon to your favourites?
-              </h6>
-              <button
-                className="btn-primary mt-6"
-                onClick={() => savePokemonToFavourites()}
-                disabled={loadingSave}
-              >
-                {loadingSave ? "Loading..." : "Add to Favourites"}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            ) : (
+              <div>
+                <button
+                  className="btn-primary mt-6"
+                  onClick={() => resetToOriginal()}
+                >
+                  Show Original Description
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        {isTranslated && (
+          <div className="pb-2 flex flex-col items-center">
+            <h6 className="text-lg font-small mb-2 text-gray-900 dark:text-gray-100 capitalize pt-8">
+              Would you like to add this Pokemon to your favourites?
+            </h6>
+            <button
+              className={`btn-primary transition-all duration-300 ${
+                saved ? "bg-green-600 scale-105" : ""
+              }`}
+              onClick={() => savePokemonToFavourites()}
+              disabled={loadingSave}
+            >
+              {saved ? "✓ Saved to Favourites!" : "Add to Favourites"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -12,11 +12,9 @@ export const mockPokemonSpeciesResponse = [
 export const mockAdditionalPokemonSpeciesResponse = [
   {
     name: "charmander",
-    id: 4,
   },
   {
     name: "charmeleon",
-    id: 5,
   },
 ];
 

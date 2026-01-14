@@ -6,7 +6,7 @@ import { FavouritePokemon } from "@/types/favourite";
 import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
 import { fetchPokemonByName, fetchPokemons } from "@/lib/pokemon";
 import { ApiResponse } from "@/types/api";
-import { Pokemon, PokemonDetails } from "@/types/pokemon";
+import { PokemonDetails, PokemonList } from "@/types/pokemon";
 import {
   createErrorResponse,
   getFirstEnglishDescription,
@@ -26,7 +26,7 @@ import { fetchPokemonTranslation } from "@/lib/shakespeare";
  */
 export async function loadPokemons(
   offset: number = 0
-): Promise<ApiResponse<Pokemon[]>> {
+): Promise<ApiResponse<PokemonList>> {
   try {
     if (await isRateLimited({ maxRequests: 5 })) {
       return rateLimitResponse;
@@ -34,7 +34,7 @@ export async function loadPokemons(
     const pokemonList = await fetchPokemons(POKEMON_SPECIES_LIMIT, offset);
     return {
       success: true,
-      data: pokemonList,
+      data: { results: pokemonList },
     };
   } catch (error) {
     return createErrorResponse(

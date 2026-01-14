@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { PokemonList } from "../PokemonList";
+import { Pokemons } from "../PokemonList";
 import { loadPokemons } from "@/app/actions";
 import {
   mockAdditionalPokemonSpeciesResponse,
@@ -23,7 +23,7 @@ describe("Pokemon Fetch Species List", () => {
       data: mockAdditionalPokemonSpeciesResponse,
     });
 
-    render(<PokemonList pokemons={mockPokemonSpeciesResponse} />);
+    render(<Pokemons pokemons={mockPokemonSpeciesResponse} />);
 
     const fetchButton = screen.getByRole("button", {
       name: /Present Some Pokemon Names/i,
@@ -54,7 +54,7 @@ describe("Pokemon Fetch Species List", () => {
       status: 500,
     });
 
-    render(<PokemonList pokemons={mockPokemonSpeciesResponse} />);
+    render(<Pokemons pokemons={mockPokemonSpeciesResponse} />);
 
     const fetchButton = screen.getByRole("button", {
       name: /Present Some Pokemon Names/i,

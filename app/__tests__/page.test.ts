@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import Home from "../page";
-import { PokemonList } from "@/components/PokemonList";
+import { Pokemons } from "@/components/PokemonList";
 
 describe("Home page", () => {
   beforeEach(() => {
@@ -18,6 +18,6 @@ describe("Home page", () => {
     const home = await Home();
     render(home);
     expect(screen.getByText("Present Some Pokemon Names")).toBeInTheDocument();
-    expect(PokemonList).toBeDefined();
+    expect(Pokemons).toBeDefined();
   });
 });
