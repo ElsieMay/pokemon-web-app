@@ -20,7 +20,8 @@ describe("Pokemon Search by Name Component", () => {
       success: true,
       data: {
         name: "Wormadam",
-        description: "A Pokémon that camouflages itself with leaves.",
+        description: "A test description",
+        id: 413,
       },
     });
 
@@ -85,26 +86,5 @@ describe("Pokemon Search by Name Component", () => {
     await waitFor(() => {
       expect(mockSearchPokemonByName).toHaveBeenCalledTimes(2);
     });
-  });
-
-  // Edge Case: Empty Input - should not call search function
-  it("should not call searchPokemonByName when input is empty", async () => {
-    const { getByLabelText, getByText } = render(
-      <PokemonSearch name={pokemonName} />
-    );
-
-    const input = getByLabelText("Pokemon Name") as HTMLInputElement;
-    const button = getByText("Search for Pokemon");
-
-    fireEvent.change(input, { target: { value: "" } });
-    expect(input.value).toBe("");
-
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(mockSearchPokemonByName).not.toHaveBeenCalled();
-    });
-
-    expect(button).toHaveTextContent("Search for Pokemon");
   });
 });

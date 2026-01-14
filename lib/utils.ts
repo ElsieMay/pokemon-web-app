@@ -140,17 +140,6 @@ export function validateDescription(
 }
 
 /**
- * Validates UUID v4 format
- * @param uuid - The UUID string to validate
- * @returns true if valid UUID v4 format
- */
-export function isValidUUID(uuid: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    uuid
-  );
-}
-
-/**
  * Validates and returns userId, throws if invalid
  * @param userId - Optional user ID to validate
  * @throws Error if userId format is invalid
@@ -158,9 +147,6 @@ export function isValidUUID(uuid: string): boolean {
 export function validateUserId(userId: string): void {
   if (!userId || userId.trim().length === 0) {
     throw new Error("User ID is required");
-  }
-  if (userId && !isValidUUID(userId)) {
-    throw new Error("Invalid user ID format");
   }
 }
 

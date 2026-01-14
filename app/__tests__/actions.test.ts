@@ -15,7 +15,11 @@ import {
   TranslationFetchError,
   FavouriteStoreError,
 } from "@/types/error";
-import { getFirstEnglishDescription, isRateLimited } from "@/lib/utils";
+import {
+  getFirstEnglishDescription,
+  isRateLimited,
+  rateLimitResponse,
+} from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
 import { getSessionId } from "@/lib/session";
 import { addFavourite } from "@/lib/favourites";
@@ -63,9 +67,47 @@ describe("Rate Limiting", () => {
     const response = await loadPokemons(0);
 
     expect(response.success).toBe(false);
-    // expect(response.status).toBe(429);
-    // expect(response.error).toBe("Too many requests. Please try again later.");
     expect(mockIsRateLimited).toHaveBeenCalledWith({ maxRequests: 5 });
+    expect(response).toEqual(rateLimitResponse);
+  });
+
+  // Test rate limiting for all server actions
+  const serverActions = [
+    {
+      name: "loadPokemons",
+      action: () => loadPokemons(0),
+    },
+    {
+      name: "searchPokemonByName",
+      action: () => searchPokemonByName("pikachu"),
+    },
+    {
+      name: "translatePokemonDescription",
+      action: () => translatePokemonDescription("A brave Pokemon"),
+    },
+    {
+      name: "addToFavourites",
+      action: () =>
+        addToFavourites({
+          pokemon_name: mockFavouritePokemon.pokemon_name,
+          pokemon_id: mockFavouritePokemon.pokemon_id,
+          shakespearean_description:
+            mockFavouritePokemon.shakespearean_description,
+          original_description: mockFavouritePokemon.original_description,
+        }),
+    },
+  ];
+
+  serverActions.forEach(({ name, action }) => {
+    it(`should return rate limit response for ${name} when rate limited`, async () => {
+      mockIsRateLimited.mockResolvedValue(true);
+
+      const response = await action();
+
+      expect(response.success).toBe(false);
+      expect(mockIsRateLimited).toHaveBeenCalledWith({ maxRequests: 5 });
+      expect(response).toEqual(rateLimitResponse);
+    });
   });
 });
 

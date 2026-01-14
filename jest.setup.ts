@@ -14,7 +14,3 @@ Object.defineProperty(global, "TextDecoder", {
   writable: true,
   configurable: true,
 });
-
-jest.mock("@/lib/env", () => ({
-  validateEnv: jest.fn(),
-}));

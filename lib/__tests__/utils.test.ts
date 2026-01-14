@@ -171,12 +171,6 @@ describe("Rate Limiting", () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
-    it("should throw an error for invalid user ID format", () => {
-      expect(() => validateUserId("invalid-uuid")).toThrow(
-        "Invalid user ID format"
-      );
-    });
-
     it("should throw an error when user ID is empty", () => {
       expect(() => validateUserId("")).toThrow("User ID is required");
     });

@@ -36,6 +36,7 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
     setHasSearched(true);
 
     const response = await searchPokemonByName(pokemon);
+    console.log("Response:", response);
 
     if (response.success) {
       setError(null);
@@ -73,14 +74,13 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
           >
             {loading ? "Retrying..." : "Retry Search"}
           </button>
-          X
         </div>
       ) : (
         <div className="w-full flex flex-col items-center">
           <button
             className="btn-primary mt-6"
             onClick={() => fetchPokemonByName()}
-            disabled={loading || pokemon?.trim() === ""}
+            disabled={loading || !pokemon.trim()}
           >
             {loading ? "Loading..." : "Search for Pokemon"}
           </button>
