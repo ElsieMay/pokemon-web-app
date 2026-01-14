@@ -1,17 +1,16 @@
-// Polyfill for TextEncoder and TextDecoder in Node.js environments
-if (typeof global.TextDecoder === "undefined") {
-  import("util").then(({ TextDecoder, TextEncoder }) => {
-    (
-      globalThis as {
-        TextDecoder?: typeof TextDecoder;
-        TextEncoder?: typeof TextEncoder;
-      }
-    ).TextDecoder = TextDecoder;
-    (
-      globalThis as {
-        TextDecoder?: typeof TextDecoder;
-        TextEncoder?: typeof TextEncoder;
-      }
-    ).TextEncoder = TextEncoder;
-  });
+/**
+ * Polyfills Node.js TextDecoder/TextEncoder for Cloudflare/Edge runtime
+ * Required for @neondatabase/serverless driver
+ */
+export async function applyPolyfills(): Promise<void> {
+  if (typeof globalThis.TextDecoder === "undefined") {
+    const { TextDecoder, TextEncoder } = await import("util");
+
+    const global = globalThis as {
+      TextDecoder?: typeof TextDecoder;
+      TextEncoder?: typeof TextEncoder;
+    };
+    global.TextDecoder = TextDecoder;
+    global.TextEncoder = TextEncoder;
+  }
 }

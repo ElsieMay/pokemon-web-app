@@ -138,30 +138,22 @@ export async function translatePokemonDescription(
 /**
  * Add a Pokemon to the current user's favourites
  */
-export async function addToFavourites({
-  pokemonName,
-  pokemonId,
-  shakespeareanDescription,
-  originalDescription,
-}: {
-  pokemonName: string;
-  pokemonId: number;
-  shakespeareanDescription: string;
-  originalDescription: string;
-}): Promise<ApiResponse<FavouritePokemon>> {
+export async function addToFavourites(
+  favourite: FavouritePokemon
+): Promise<ApiResponse<FavouritePokemon>> {
   try {
     const userId = await getSessionId();
-    const favourite = await addFavourite(
-      pokemonName,
-      pokemonId,
-      shakespeareanDescription,
-      originalDescription,
+    const savedFavourite = await addFavourite(
+      favourite.pokemon_name,
+      favourite.pokemon_id,
+      favourite.shakespearean_description,
+      favourite.original_description,
       userId
     );
 
     return {
       success: true,
-      data: favourite,
+      data: savedFavourite,
     };
   } catch (error) {
     if (error instanceof FavouriteStoreError) {
