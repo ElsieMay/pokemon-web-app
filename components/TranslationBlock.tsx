@@ -34,9 +34,19 @@ export function TranslationBlock({
     );
 
     if (response.success) {
+      if (!response.data) {
+        setError("Translation service returned an empty description.");
+        setLoading(false);
+        return;
+      }
+      if (!pokemon) {
+        setError("No Pokemon data available to update description.");
+        setLoading(false);
+        return;
+      }
       setError(null);
       setPokemonData({
-        name: pokemon?.name || "",
+        ...pokemon!,
         description: response.data,
       });
       setIsTranslated(true);
@@ -49,8 +59,13 @@ export function TranslationBlock({
   };
 
   const resetToOriginal = () => {
+    if (!pokemon) {
+      setError("No Pokemon data available.");
+      return;
+    }
+
     setPokemonData({
-      name: pokemon?.name || "",
+      ...pokemon!,
       description: originalDescription || "",
     });
     setIsTranslated(false);
@@ -62,14 +77,18 @@ export function TranslationBlock({
     setLoadingSave(true);
     setError(null);
 
+    if (!pokemon) {
+      setError("Invalid Pokemon data. Cannot save to favourites.");
+      setLoadingSave(false);
+      return;
+    }
+
     const favouritePokemon: FavouritePokemon = {
-      pokemon_name: pokemon?.name || "",
-      //TODO: need to fetch ID from pokemon API and pass it down
-      pokemon_id: 0,
-      shakespearean_description: pokemon?.description || "",
+      pokemon_name: pokemon.name,
+      pokemon_id: pokemon.id,
+      shakespearean_description: pokemon.description || "",
       original_description: originalDescription || "",
     };
-
     const response = await addToFavourites(favouritePokemon);
 
     if (response.success) {

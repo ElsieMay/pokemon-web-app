@@ -79,6 +79,7 @@ export async function fetchPokemonByName(name: string) {
     return {
       name: validated.name,
       flavor_text_entries: validated.flavor_text_entries,
+      id: validated.id,
     };
   } catch (error) {
     if (error instanceof PokemonFetchError) {

@@ -67,7 +67,7 @@ describe("Database Module", () => {
     ];
     mockQuery.mockResolvedValue({ rows: sampleRows });
 
-    const sql = "SELECT * FROM test_table WHERE id = $1";
+    const sql = "SELECT id, name FROM test_table WHERE id = $1";
     const params = [1];
 
     const result = await query<{ id: number; name: string }>(sql, params);

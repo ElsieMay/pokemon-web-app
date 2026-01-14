@@ -2,9 +2,9 @@
 CREATE TABLE IF NOT EXISTS favourites (
   id SERIAL PRIMARY KEY,
   pokemon_name VARCHAR(100) NOT NULL,
-  pokemon_id INTEGER NOT NULL,
-  shakespearean_description TEXT,
-  original_description TEXT,
+  pokemon_id INTEGER NOT NULL CHECK (pokemon_id > 0),
+  shakespearean_description TEXT CHECK (length(shakespearean_description) <= 5000),
+  original_description TEXT CHECK (length(original_description) <= 5000),
   user_id VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(pokemon_id, user_id)

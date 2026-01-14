@@ -6,24 +6,19 @@ import { FavouritePokemon } from "@/types/favourite";
 import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
 import { fetchPokemonByName, fetchPokemons } from "@/lib/pokemon";
 import { ApiResponse } from "@/types/api";
-import {
-  FavouriteStoreError,
-  PokemonFetchError,
-  TranslationFetchError,
-} from "@/types/error";
 import { Pokemon, PokemonDetails } from "@/types/pokemon";
-import { getFirstEnglishDescription } from "@/lib/utils";
+import {
+  createErrorResponse,
+  getFirstEnglishDescription,
+  isRateLimited,
+  rateLimitResponse,
+} from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
 
 /**
  * Server action to load a list of Pokemon species from the PokeAPI.
- *
- * This is a Next.js server action that fetches Pokemon data with pagination support.
- * It handles errors gracefully and returns a structured API response.
- *
  * @param offset - The starting position for pagination (default: 0)
  * @returns A promise resolving to an ApiResponse containing Pokemon data or error details
- *
  * @example
  * ```tsx
  * const result = await loadPokemons(0);
@@ -33,40 +28,26 @@ export async function loadPokemons(
   offset: number = 0
 ): Promise<ApiResponse<Pokemon[]>> {
   try {
+    if (await isRateLimited({ maxRequests: 5 })) {
+      return rateLimitResponse;
+    }
     const pokemonList = await fetchPokemons(POKEMON_SPECIES_LIMIT, offset);
     return {
       success: true,
       data: pokemonList,
     };
   } catch (error) {
-    if (error instanceof PokemonFetchError) {
-      return {
-        success: false,
-        error: error.message,
-        status: error.status,
-      };
-    }
-
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while fetching Pokemons",
-      status: 500,
-    };
+    return createErrorResponse(
+      error,
+      "An unknown error occurred while fetching Pokemons"
+    );
   }
 }
 
 /**
  * Server action to search for a Pokemon species by name from the PokeAPI.
- *
- * This is a Next.js server action that fetches a single Pokemon by its name.
- * It handles errors gracefully and returns a structured API response.
- *
  * @param name - The name of the Pokemon species to search for
  * @returns A promise resolving to an ApiResponse containing the Pokemon details or error details
- *
  * @example
  * ```tsx
  * const result = await searchPokemonByName("Wormadam");
@@ -76,30 +57,23 @@ export async function searchPokemonByName(
   name: string
 ): Promise<ApiResponse<PokemonDetails>> {
   try {
+    if (await isRateLimited({ maxRequests: 5 })) {
+      return rateLimitResponse;
+    }
     const pokemon = await fetchPokemonByName(name);
     return {
       success: true,
       data: {
         name: pokemon.name,
         description: getFirstEnglishDescription(pokemon),
+        id: pokemon.id,
       },
     };
   } catch (error) {
-    if (error instanceof PokemonFetchError) {
-      return {
-        success: false,
-        error: error.message,
-        status: error.status,
-      };
-    }
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while fetching the Pokemon",
-      status: 500,
-    };
+    return createErrorResponse(
+      error,
+      "An unknown error occurred while fetching the Pokemon"
+    );
   }
 }
 
@@ -112,29 +86,22 @@ export async function translatePokemonDescription(
   description: string
 ): Promise<ApiResponse<string>> {
   try {
+    if (await isRateLimited({ maxRequests: 5 })) {
+      return rateLimitResponse;
+    }
     const translatedDescription = await fetchPokemonTranslation(description);
     return {
       success: true,
       data: translatedDescription,
     };
   } catch (error) {
-    if (error instanceof TranslationFetchError) {
-      return {
-        success: false,
-        error: error.message,
-        status: error.status,
-      };
-    }
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while translating the description",
-      status: 500,
-    };
+    return createErrorResponse(
+      error,
+      "An unknown error occurred while translating the description"
+    );
   }
 }
+
 /**
  * Add a Pokemon to the current user's favourites
  */
@@ -143,6 +110,9 @@ export async function addToFavourites(
 ): Promise<ApiResponse<FavouritePokemon>> {
   try {
     const userId = await getSessionId();
+    if (await isRateLimited({ maxRequests: 5 })) {
+      return rateLimitResponse;
+    }
     const savedFavourite = await addFavourite(
       favourite.pokemon_name,
       favourite.pokemon_id,
@@ -156,20 +126,9 @@ export async function addToFavourites(
       data: savedFavourite,
     };
   } catch (error) {
-    if (error instanceof FavouriteStoreError) {
-      return {
-        success: false,
-        error: error.message,
-        status: error.status,
-      };
-    }
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unknown error occurred while adding to favourites",
-      status: 500,
-    };
+    return createErrorResponse(
+      error,
+      "An unknown error occurred while adding to favourites"
+    );
   }
 }

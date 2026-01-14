@@ -3,6 +3,7 @@ import {
   API_SHAKESPEARE_TRANSLATION_URL,
   CACHE_REVALIDATE_TIME,
 } from "./config";
+import { validateTranslationInput } from "./utils";
 
 /**
  * Post request to Shakespeare translation API.
@@ -18,13 +19,15 @@ import {
  */
 export async function fetchPokemonTranslation(description: string) {
   try {
+    const sanitized = validateTranslationInput(description);
+
     const response = await fetch(`${API_SHAKESPEARE_TRANSLATION_URL}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text: description,
+        text: sanitized,
       }),
       next: { revalidate: CACHE_REVALIDATE_TIME },
     });

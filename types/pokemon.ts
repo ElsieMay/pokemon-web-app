@@ -40,6 +40,7 @@ export const PokemonSchema = z.object({
   // TODO: Add additional fields
   name: z.string(),
   flavor_text_entries: z.array(FlavorTextEntrySchema).nullable().optional(),
+  id: z.number(),
 });
 
 export type Pokemon = z.infer<typeof PokemonSchema>;
@@ -62,4 +63,5 @@ export type PokemonList = z.infer<typeof PokemonListSchema>;
 export interface PokemonDetails {
   name: string;
   description: string | null;
+  id: number;
 }

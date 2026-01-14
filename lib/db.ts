@@ -1,6 +1,7 @@
 import { Pool } from "@neondatabase/serverless";
 // Polyfill for globalThis atob and btoa in Node.js
 import "@/lib/polyfill";
+import "@/lib/env";
 
 /**
  * Get a Neon database connection
@@ -14,7 +15,12 @@ export function getNeonPool() {
   }
 
   if (!pool) {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 5,
+      idleTimeoutMillis: 60000,
+      connectionTimeoutMillis: 10000,
+    });
   }
 
   return pool;

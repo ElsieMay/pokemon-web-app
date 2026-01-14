@@ -14,7 +14,7 @@ export async function getSessionId(): Promise<string> {
   let sessionId = cookieStore.get(SESSION_ID)?.value;
 
   if (!sessionId) {
-    sessionId = `user_${randomUUID()}`;
+    sessionId = randomUUID();
     cookieStore.set(SESSION_ID, sessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
