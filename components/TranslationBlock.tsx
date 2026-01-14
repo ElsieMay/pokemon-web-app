@@ -29,9 +29,7 @@ export function TranslationBlock({
   const fetchShakespeareTranslation = async () => {
     setLoading(true);
 
-    const response = await translatePokemonDescription(
-      originalDescription || ""
-    );
+    const response = await translatePokemonDescription(originalDescription);
 
     if (response.success) {
       if (!response.data) {
@@ -62,22 +60,19 @@ export function TranslationBlock({
   };
 
   const savePokemonToFavourites = async () => {
-    console.log(`Saving ${pokemon?.name} to favourites.`);
     setLoadingSave(true);
     setError(null);
 
     const favouritePokemon: FavouritePokemon = {
       pokemon_name: pokemon!.name,
       pokemon_id: pokemon!.id,
-      shakespearean_description: pokemon!.description || "",
+      shakespearean_description: pokemon!.description!,
       original_description: originalDescription || "",
     };
     const response = await addToFavourites(favouritePokemon);
 
     if (response.success) {
       setError(null);
-      //TODO: Show success message to user
-      console.log(`${pokemon?.name} saved to favourites successfully.`);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } else {
@@ -88,66 +83,62 @@ export function TranslationBlock({
   };
 
   return (
-    <div className="mt-6 p-4 rounded-lg">
-      <div className="mt-6 p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
-        <h6 className="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100 capitalize">
-          {pokemon?.name || "Unknown Pokemon"}
-        </h6>
-        <p className="text-gray-700 dark:text-gray-300">
-          {pokemon?.description || "No description available."}
-        </p>
-
-        {error ? (
-          <div className="w-full flex flex-col items-center">
-            <p className="mt-4 text-red-500">{error}</p>
+    <div className="mt-6 p-6 rounded-lg bg-slate-100 dark:bg-slate-800 mx-auto max-w-2xl text-center">
+      <h6 className="font-medium mb-2 text-gray-900 dark:text-gray-100 capitalize">
+        {pokemon?.name || "Unknown Pokemon"}
+      </h6>
+      <p className="text-gray-700 dark:text-gray-300">
+        {pokemon?.description || "No description available."}
+      </p>
+      {error ? (
+        <div className="w-full flex flex-col items-center">
+          <p className="mt-4 text-red-500">{error}</p>
+          <button
+            className="btn-primary mt-6"
+            onClick={() => fetchShakespeareTranslation()}
+            disabled={loading}
+          >
+            {loading ? "Retrying..." : "Retry Search"}
+          </button>
+        </div>
+      ) : (
+        <div className="w-full flex flex-col items-center gap-2">
+          {!isTranslated ? (
             <button
               className="btn-primary mt-6"
               onClick={() => fetchShakespeareTranslation()}
               disabled={loading}
             >
-              {loading ? "Retrying..." : "Retry Search"}
+              {loading ? "Loading..." : "Translate to Shakespearean English"}
             </button>
-            X
-          </div>
-        ) : (
-          <div className="w-full flex flex-col items-center gap-2">
-            {!isTranslated ? (
+          ) : (
+            <div>
               <button
                 className="btn-primary mt-6"
-                onClick={() => fetchShakespeareTranslation()}
-                disabled={loading}
+                onClick={() => resetToOriginal()}
               >
-                {loading ? "Loading..." : "Translate to Shakespearean English"}
+                Show Original Description
               </button>
-            ) : (
-              <div>
-                <button
-                  className="btn-primary mt-6"
-                  onClick={() => resetToOriginal()}
-                >
-                  Show Original Description
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-        {isTranslated && (
-          <div className="pb-2 flex flex-col items-center">
-            <h6 className="text-lg font-small mb-2 text-gray-900 dark:text-gray-100 capitalize pt-8">
-              Would you like to add this Pokemon to your favourites?
-            </h6>
-            <button
-              className={`btn-primary transition-all duration-300 ${
-                saved ? "bg-green-600 scale-105" : ""
-              }`}
-              onClick={() => savePokemonToFavourites()}
-              disabled={loadingSave}
-            >
-              {saved ? "✓ Saved to Favourites!" : "Add to Favourites"}
-            </button>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
+      {isTranslated && (
+        <div className="pb-2 flex flex-col items-center">
+          <h6 className="font-medium text-gray-900 dark:text-gray-100 capitalize pt-8">
+            Would you like to add this Pokemon to your favourites?
+          </h6>
+          <button
+            className={`btn-primary transition-all duration-300 mt-4 ${
+              saved ? "bg-green-600 scale-105" : ""
+            }`}
+            onClick={() => savePokemonToFavourites()}
+            disabled={loadingSave}
+          >
+            {saved ? "✓ Saved to Favourites!" : "Add to Favourites"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

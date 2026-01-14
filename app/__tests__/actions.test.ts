@@ -8,6 +8,7 @@ import {
   searchPokemonByName,
   translatePokemonDescription,
   addToFavourites,
+  getAllFavourites,
 } from "../actions";
 import { fetchPokemons, fetchPokemonByName } from "@/lib/pokemon";
 import {
@@ -22,7 +23,7 @@ import {
 } from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
 import { getSessionId } from "@/lib/session";
-import { addFavourite } from "@/lib/favourites";
+import { addFavourite, getFavourites } from "@/lib/favourites";
 
 jest.mock("@/lib/pokemon");
 const mockFetchPokemons = fetchPokemons as jest.MockedFunction<
@@ -46,6 +47,9 @@ const mockGetSessionId = getSessionId as jest.MockedFunction<
 const mockAddFavourite = addFavourite as jest.MockedFunction<
   typeof addFavourite
 >;
+const mockGetFavourites = getFavourites as jest.MockedFunction<
+  typeof getFavourites
+>;
 
 jest.mock("@/lib/utils", () => ({
   ...jest.requireActual("@/lib/utils"),
@@ -67,7 +71,7 @@ describe("Rate Limiting", () => {
     const response = await loadPokemons(0);
 
     expect(response.success).toBe(false);
-    expect(mockIsRateLimited).toHaveBeenCalledWith({ maxRequests: 5 });
+    expect(mockIsRateLimited).toHaveBeenCalledWith({ maxRequests: 10 });
     expect(response).toEqual(rateLimitResponse);
   });
 
@@ -96,6 +100,10 @@ describe("Rate Limiting", () => {
           original_description: mockFavouritePokemon.original_description,
         }),
     },
+    {
+      name: "getAllFavourites",
+      action: () => getAllFavourites(),
+    },
   ];
 
   serverActions.forEach(({ name, action }) => {
@@ -105,7 +113,7 @@ describe("Rate Limiting", () => {
       const response = await action();
 
       expect(response.success).toBe(false);
-      expect(mockIsRateLimited).toHaveBeenCalledWith({ maxRequests: 5 });
+      expect(mockIsRateLimited).toHaveBeenCalledWith({ maxRequests: 10 });
       expect(response).toEqual(rateLimitResponse);
     });
   });
@@ -126,7 +134,9 @@ describe("Pokemon Fetch Species List", () => {
 
     expect(response.success).toBe(true);
     if (response.success) {
-      expect(response.data).toEqual(mockAdditionalPokemonSpeciesResponse);
+      expect(response.data).toEqual({
+        results: mockAdditionalPokemonSpeciesResponse,
+      });
     }
     expect(mockFetchPokemons).toHaveBeenCalledWith(20, 0);
   });
@@ -187,7 +197,7 @@ describe("Pokemon Fetch Species List", () => {
 
     expect(response.success).toBe(true);
     if (response.success) {
-      expect(response.data).toEqual([]);
+      expect(response.data).toEqual({ results: [] });
     }
     expect(mockFetchPokemons).toHaveBeenCalledWith(20, 0);
   });
@@ -511,5 +521,62 @@ describe("add to favourites", () => {
       mockFavouritePokemon.original_description,
       mockSessionId
     );
+  });
+});
+
+describe("getAllFavourites", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const mockSessionId = "user-123";
+
+  // Test fetching all favourite Pokemons - success case
+  it("should fetch all favourite Pokemons successfully", async () => {
+    mockGetSessionId.mockResolvedValue(mockSessionId);
+    mockAddFavourite.mockResolvedValue(mockFavouritePokemon);
+
+    const sessionId = await getSessionId();
+    expect(sessionId).toBe(mockSessionId);
+
+    const response = await getAllFavourites();
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockAddFavourite).not.toHaveBeenCalled();
+    expect(response.success).toBe(true);
+  });
+
+  // Test should handle when session ID is not available
+  it("should throw an error when session ID is not available", async () => {
+    mockGetSessionId.mockRejectedValue(mockSessionId);
+
+    await expect(getAllFavourites()).resolves.toEqual({
+      success: false,
+      error: "An unknown error occurred while fetching favourites",
+      status: 500,
+    });
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockAddFavourite).not.toHaveBeenCalled();
+  });
+
+  // Test adding a Pokemon to favourites - failure case
+  it("should handle errors when fetching all favourite Pokemons fails", async () => {
+    mockGetSessionId.mockResolvedValue(mockSessionId);
+    mockGetFavourites.mockRejectedValue(
+      new FavouriteStoreError("Database Error", 500)
+    );
+
+    const sessionId = await getSessionId();
+    expect(sessionId).toBe(mockSessionId);
+
+    await expect(getAllFavourites()).resolves.toEqual({
+      success: false,
+      error: "Database Error",
+      status: 500,
+    });
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockGetFavourites).toHaveBeenCalledWith(mockSessionId);
   });
 });

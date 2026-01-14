@@ -58,7 +58,7 @@ export async function getFavourites(
   validateUserId(userId);
 
   const result = await query<FavouritePokemon>(
-    `SELECT pokemon_name, created_at, shakespearean_description, original_description 
+    `SELECT pokemon_name, pokemon_id, created_at, shakespearean_description, original_description 
      FROM favourites 
      WHERE user_id = $1`,
     [userId]

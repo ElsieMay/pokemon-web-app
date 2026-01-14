@@ -36,7 +36,7 @@ export function Pokemons({ pokemons }: PokemonListProps) {
 
     if (response.success) {
       setPokemonList((prev) => ({
-        results: [...(prev.results ?? []), ...response.data.results],
+        results: [...(prev?.results ?? []), ...response.data.results],
       }));
       setError(null);
     } else {
@@ -89,13 +89,15 @@ export function Pokemons({ pokemons }: PokemonListProps) {
               </li>
             ))}
           </ul>
-          <button
-            className="btn-primary mt-6"
-            onClick={() => fetchPokemonList()}
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "Present Some Pokemon Names"}
-          </button>
+          {!pokemonList.results.length && (
+            <button
+              className="btn-primary mt-6"
+              onClick={() => fetchPokemonList()}
+              disabled={loading}
+            >
+              {loading ? "Loading..." : "Present Some Pokemon Names"}
+            </button>
+          )}
         </div>
       )}
     </div>

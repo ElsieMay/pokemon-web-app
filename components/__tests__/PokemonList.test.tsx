@@ -1,10 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Pokemons } from "../PokemonList";
 import { loadPokemons } from "@/app/actions";
-import {
-  mockAdditionalPokemonSpeciesResponse,
-  mockPokemonSpeciesResponse,
-} from "@/lib/__mocks__/sample";
+import { mockPokemonSpeciesResponse } from "@/lib/__mocks__/sample";
 
 jest.mock("@/app/actions");
 const mockLoadPokemons = loadPokemons as jest.MockedFunction<
@@ -17,13 +14,15 @@ describe("Pokemon Fetch Species List", () => {
   });
 
   // Render initial pokemons - success case
-  it("should fetch Pokemons when button is clicked", async () => {
-    mockLoadPokemons.mockResolvedValue({
+  it("should fetch Pokemons when button is clicked with empty initial list", async () => {
+    mockLoadPokemons.mockResolvedValueOnce({
       success: true,
-      data: mockAdditionalPokemonSpeciesResponse,
+      data: {
+        results: mockPokemonSpeciesResponse,
+      },
     });
 
-    render(<Pokemons pokemons={mockPokemonSpeciesResponse} />);
+    render(<Pokemons pokemons={{ results: [] }} />);
 
     const fetchButton = screen.getByRole("button", {
       name: /Present Some Pokemon Names/i,
@@ -31,30 +30,24 @@ describe("Pokemon Fetch Species List", () => {
     fireEvent.click(fetchButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
+      expect(mockLoadPokemons).toHaveBeenCalledWith(0);
     });
 
     await waitFor(() => {
-      expect(screen.getByText("charmander")).toBeInTheDocument();
-      expect(screen.getByText("charmeleon")).toBeInTheDocument();
-
-      //Initial pokemons still present
       expect(screen.getByText("Wormadam")).toBeInTheDocument();
       expect(screen.getByText("ivysaur")).toBeInTheDocument();
     });
-
-    expect(mockLoadPokemons).toHaveBeenCalledWith(2);
   });
 
   // Fetch pokemons - failure case with retry handling
   it("if fetching pokemons fails, should allow user to refetch", async () => {
     mockLoadPokemons.mockResolvedValueOnce({
       success: false,
-      error: "Network Error",
+      error: "Unable to load Pokémon. Please try again.",
       status: 500,
     });
 
-    render(<Pokemons pokemons={mockPokemonSpeciesResponse} />);
+    render(<Pokemons pokemons={{ results: [] }} />);
 
     const fetchButton = screen.getByRole("button", {
       name: /Present Some Pokemon Names/i,
@@ -62,40 +55,87 @@ describe("Pokemon Fetch Species List", () => {
     fireEvent.click(fetchButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
+      expect(mockLoadPokemons).toHaveBeenCalledWith(0);
     });
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Error fetching Pokemons: Network Error/i)
+        screen.getByText("Unable to load Pokémon. Please try again.")
       ).toBeInTheDocument();
-    });
-
-    const retryButton = screen.getByRole("button", {
-      name: /Retry Load Pokemons/i,
     });
 
     // Mock successful retry
     mockLoadPokemons.mockResolvedValueOnce({
       success: true,
-      data: mockAdditionalPokemonSpeciesResponse,
+      data: {
+        results: mockPokemonSpeciesResponse,
+      },
     });
 
+    const retryButton = screen.getByRole("button", {
+      name: /Retry Load Pokemons/i,
+    });
     fireEvent.click(retryButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/retrying/i)).toBeInTheDocument();
+      expect(mockLoadPokemons).toHaveBeenCalledTimes(2);
+      expect(mockLoadPokemons).toHaveBeenCalledWith(0);
     });
 
     await waitFor(() => {
-      expect(screen.getByText("charmander")).toBeInTheDocument();
-      expect(screen.getByText("charmeleon")).toBeInTheDocument();
-
-      //Initial pokemons still present
       expect(screen.getByText("Wormadam")).toBeInTheDocument();
       expect(screen.getByText("ivysaur")).toBeInTheDocument();
     });
+  });
 
-    expect(mockLoadPokemons).toHaveBeenCalledWith(2);
+  // Safety check tests
+  describe("Safety checks for missing data", () => {
+    it("should render fallback UI when pokemonList is null", () => {
+      // @ts-expect-error - Testing null safety check
+      render(<Pokemons pokemons={null} />);
+
+      expect(
+        screen.getByText("No Pokémon data available as yet.")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Load Pokémon/i })
+      ).toBeInTheDocument();
+    });
+
+    it("should render fallback UI when pokemonList.results is missing", () => {
+      // @ts-expect-error - Testing undefined results safety check
+      render(<Pokemons pokemons={{}} />);
+
+      expect(
+        screen.getByText("No Pokémon data available as yet.")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Load Pokémon/i })
+      ).toBeInTheDocument();
+    });
+
+    it("should allow fetching Pokemon from fallback state", async () => {
+      mockLoadPokemons.mockResolvedValueOnce({
+        success: true,
+        data: {
+          results: mockPokemonSpeciesResponse,
+        },
+      });
+
+      // @ts-expect-error - Testing null safety check
+      render(<Pokemons pokemons={null} />);
+
+      const loadButton = screen.getByRole("button", { name: /Load Pokémon/i });
+      fireEvent.click(loadButton);
+
+      await waitFor(() => {
+        expect(mockLoadPokemons).toHaveBeenCalledWith(0);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("Wormadam")).toBeInTheDocument();
+        expect(screen.getByText("ivysaur")).toBeInTheDocument();
+      });
+    });
   });
 });

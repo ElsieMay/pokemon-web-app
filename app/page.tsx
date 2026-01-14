@@ -1,3 +1,4 @@
+import { FavouriteSection } from "@/components/FavouritesSection";
 import { Pokemons } from "@/components/PokemonList";
 import { PokemonSearch } from "@/components/PokemonSearch";
 
@@ -14,7 +15,8 @@ export default async function Home() {
       <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
         Pokemon Shakespeare Web App
       </h1>
-      <Pokemons pokemons={[]} />
+      <Pokemons pokemons={{ results: [] }} />
+      <FavouriteSection pokemons={[]} />
       <PokemonSearch />
     </main>
   );

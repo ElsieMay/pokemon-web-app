@@ -90,7 +90,9 @@ describe("Favourites Module", () => {
     const result = await getFavourites(mockFavouritePokemon.user_id);
 
     expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining("SELECT pokemon_name, created_at"),
+      `SELECT pokemon_name, pokemon_id, created_at, shakespearean_description, original_description 
+     FROM favourites 
+     WHERE user_id = $1`,
       [mockFavouritePokemon.user_id || null]
     );
 

@@ -121,10 +121,10 @@ describe("tests for translated description block", () => {
   });
 
   // Error Handling - failure case
-  it("should display an error message when translation fails", async () => {
+  it("should display an error message when translation fails and allow user to retry", async () => {
     mockTranslatePokemonDescription.mockResolvedValue({
       success: false,
-      error: "Translation service unavailable",
+      error: "Translation service is currently unavailable.",
       status: 503,
     });
 
@@ -135,14 +135,27 @@ describe("tests for translated description block", () => {
     const button = getByRole("button", {
       name: translateButtonText,
     });
-    expect(button).toBeInTheDocument();
-
     fireEvent.click(button);
 
     await waitFor(() => {
       expect(
-        getByText("Error fetching translation: Translation service unavailable")
+        getByText(
+          "Error fetching translation: Translation service is currently unavailable."
+        )
       ).toBeInTheDocument();
+    });
+
+    // Mock successful retry
+    mockTranslatePokemonDescription.mockResolvedValue({
+      success: true,
+      data: ShakespeareTranslation,
+    });
+
+    const retryButton = getByRole("button", { name: "Retry Search" });
+    fireEvent.click(retryButton);
+
+    await waitFor(() => {
+      expect(getByText(ShakespeareTranslation)).toBeInTheDocument();
     });
   });
 
@@ -248,6 +261,71 @@ describe("tests for translated description block", () => {
     await waitFor(() => {
       expect(
         getByText("Error saving to favourites: Failed to save favourite")
+      ).toBeInTheDocument();
+    });
+  });
+
+  // Test edge cases with null/undefined values
+  it("should handle null description when saving to favourites", async () => {
+    const pokemonWithNullDescription = {
+      name: "TestPokemon",
+      id: 1,
+      description: null,
+    };
+
+    mockTranslatePokemonDescription.mockResolvedValue({
+      success: true,
+      data: ShakespeareTranslation,
+    });
+
+    mockAddToFavourites.mockResolvedValue({
+      success: true,
+      data: {
+        pokemon_name: "TestPokemon",
+        pokemon_id: 1,
+        shakespearean_description: ShakespeareTranslation,
+        original_description: "",
+      },
+    });
+
+    const { getByRole, findByRole } = render(
+      <TranslationBlock pokemon={pokemonWithNullDescription} />
+    );
+
+    const translateButton = getByRole("button", { name: translateButtonText });
+    fireEvent.click(translateButton);
+
+    const saveButton = await findByRole("button", {
+      name: /Add to Favourites/i,
+    });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockAddToFavourites).toHaveBeenCalledWith({
+        pokemon_name: "TestPokemon",
+        pokemon_id: 1,
+        shakespearean_description: ShakespeareTranslation,
+        original_description: "",
+      });
+    });
+  });
+
+  it("should handle undefined translated description when saving to favourites", async () => {
+    mockTranslatePokemonDescription.mockResolvedValue({
+      success: true,
+      data: "",
+    });
+
+    const { getByRole, getByText } = render(
+      <TranslationBlock pokemon={mockPokemonNameAndDescription} />
+    );
+
+    const translateButton = getByRole("button", { name: translateButtonText });
+    fireEvent.click(translateButton);
+
+    await waitFor(() => {
+      expect(
+        getByText("Translation service returned an empty description.")
       ).toBeInTheDocument();
     });
   });

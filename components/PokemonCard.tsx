@@ -1,0 +1,66 @@
+import { FavouritePokemon } from "@/types/favourite";
+
+interface PokemonCardProps {
+  /** Pokemon data from the favourites table */
+  pokemon: FavouritePokemon;
+}
+
+/**
+ * Displays all fields from the Pokemon (favourites) table in a styled card.
+ *
+ * @param props - Component props
+ * @returns A rendered Pokemon card with all table fields
+ *
+ * @example
+ * ```tsx
+ * <PokemonCard pokemon={pokemonData} />
+ * ```
+ */
+export function PokemonCard({ pokemon }: PokemonCardProps) {
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(date));
+  };
+
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow">
+      <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <h3 className="text-2xl font-bold capitalize text-gray-900 dark:text-white">
+          {pokemon.pokemon_name}
+        </h3>
+      </div>
+
+      <div className="mb-4">
+        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+          <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+          Original Description
+        </h4>
+        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed pl-4">
+          {pokemon.original_description || "No description available"}
+        </p>
+      </div>
+
+      <div className="mb-4">
+        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+          <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+          Shakespearean Translation
+        </h4>
+        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed pl-4 italic">
+          {pokemon.shakespearean_description ||
+            "No Shakespearean translation available"}
+        </p>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
+        {pokemon.created_at && (
+          <div>
+            <span className="font-semibold">Added: </span>
+            <span>{formatDate(pokemon.created_at)}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

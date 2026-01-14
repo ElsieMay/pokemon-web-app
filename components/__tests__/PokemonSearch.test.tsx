@@ -74,7 +74,44 @@ describe("Pokemon Search by Name Component", () => {
     });
 
     const errorMessage = await findByText(
-      `Error fetching ${pokemonName}: Pokemon not found`
+      `Pokémon "${pokemonName}" not found. Please check the spelling.`
+    );
+    expect(errorMessage).toBeInTheDocument();
+
+    const retryButton = getByText("Retry Search");
+    expect(retryButton).toBeInTheDocument();
+
+    fireEvent.click(retryButton);
+
+    await waitFor(() => {
+      expect(mockSearchPokemonByName).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("should display an error message when search fails", async () => {
+    mockSearchPokemonByName.mockResolvedValue({
+      success: false,
+      error: "Pokemon not found",
+      status: 500,
+    });
+
+    const { getByLabelText, getByText, findByText } = render(
+      <PokemonSearch name={pokemonName} />
+    );
+
+    const input = getByLabelText("Pokemon Name") as HTMLInputElement;
+    const button = getByText("Search for Pokemon");
+
+    expect(input.value).toBe(pokemonName);
+
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mockSearchPokemonByName).toHaveBeenCalledWith(pokemonName);
+    });
+
+    const errorMessage = await findByText(
+      `Unable to find "${pokemonName}". Please try again.`
     );
     expect(errorMessage).toBeInTheDocument();
 

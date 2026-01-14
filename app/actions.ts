@@ -1,7 +1,7 @@
 "use server";
 
 import { getSessionId } from "@/lib/session";
-import { addFavourite } from "@/lib/favourites";
+import { addFavourite, getFavourites } from "@/lib/favourites";
 import { FavouritePokemon } from "@/types/favourite";
 import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
 import { fetchPokemonByName, fetchPokemons } from "@/lib/pokemon";
@@ -28,7 +28,7 @@ export async function loadPokemons(
   offset: number = 0
 ): Promise<ApiResponse<PokemonList>> {
   try {
-    if (await isRateLimited({ maxRequests: 5 })) {
+    if (await isRateLimited({ maxRequests: 10 })) {
       return rateLimitResponse;
     }
     const pokemonList = await fetchPokemons(POKEMON_SPECIES_LIMIT, offset);
@@ -57,7 +57,7 @@ export async function searchPokemonByName(
   name: string
 ): Promise<ApiResponse<PokemonDetails>> {
   try {
-    if (await isRateLimited({ maxRequests: 5 })) {
+    if (await isRateLimited({ maxRequests: 10 })) {
       return rateLimitResponse;
     }
     const pokemon = await fetchPokemonByName(name);
@@ -86,7 +86,7 @@ export async function translatePokemonDescription(
   description: string
 ): Promise<ApiResponse<string>> {
   try {
-    if (await isRateLimited({ maxRequests: 5 })) {
+    if (await isRateLimited({ maxRequests: 10 })) {
       return rateLimitResponse;
     }
     const translatedDescription = await fetchPokemonTranslation(description);
@@ -110,7 +110,7 @@ export async function addToFavourites(
 ): Promise<ApiResponse<FavouritePokemon>> {
   try {
     const userId = await getSessionId();
-    if (await isRateLimited({ maxRequests: 5 })) {
+    if (await isRateLimited({ maxRequests: 10 })) {
       return rateLimitResponse;
     }
     const savedFavourite = await addFavourite(
@@ -129,6 +129,31 @@ export async function addToFavourites(
     return createErrorResponse(
       error,
       "An unknown error occurred while adding to favourites"
+    );
+  }
+}
+
+/**
+ * Get all Favourite Pokemons for the current session user
+ */
+export async function getAllFavourites(): Promise<
+  ApiResponse<FavouritePokemon[] | null>
+> {
+  try {
+    if (await isRateLimited({ maxRequests: 10 })) {
+      return rateLimitResponse;
+    }
+    const userId = await getSessionId();
+    const favourites = await getFavourites(userId);
+
+    return {
+      success: true,
+      data: favourites,
+    };
+  } catch (error) {
+    return createErrorResponse(
+      error,
+      "An unknown error occurred while fetching favourites"
     );
   }
 }

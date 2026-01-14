@@ -25,7 +25,7 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pokemonData, setPokemonData] = useState<PokemonDetails | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
+  // const [hasSearched, setHasSearched] = useState(false);
 
   /**
    * Fetches a Pokemon by name and updates the state.
@@ -33,11 +33,9 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
    */
   const fetchPokemonByName = async () => {
     setLoading(true);
-    setHasSearched(true);
+    // setHasSearched(true);
 
     const response = await searchPokemonByName(pokemon);
-    console.log("Response:", response);
-
     if (response.success) {
       setError(null);
       setPokemonData(response.data);
@@ -58,44 +56,41 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
         <label htmlFor="pokemon-search" className="sr-only">
           Pokemon Name
         </label>
-        {hasSearched && pokemonData ? (
-          <TranslationBlock pokemon={pokemonData} />
+        <h2 className="text-2xl font-semibold mt-12 mb-6 text-gray-900 dark:text-gray-100">
+          Which Pokemon would you like to search for?
+        </h2>
+        <input
+          id="pokemon-search"
+          type="text"
+          value={pokemon}
+          placeholder="Enter Pokemon Name"
+          onChange={(e) => setPokemon(e.target.value)}
+          className="w-full bg-transparent placeholder:text-slate-400 text-white text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-500 hover:border-slate-300 ring-4 ring-transparent focus:ring-slate-100 max-w-2xl"
+        />
+        {error ? (
+          <div className="w-full flex flex-col items-center">
+            <p className="mt-4 text-red-500">{error}</p>
+            <button
+              className="btn-primary mt-6"
+              onClick={() => fetchPokemonByName()}
+              disabled={loading}
+            >
+              {loading ? "Retrying..." : "Retry Search"}
+            </button>
+          </div>
         ) : (
-          <>
-            <h2 className="text-2xl font-semibold mt-12 mb-6 text-gray-900 dark:text-gray-100">
-              Which Pokemon would you like to search for?
-            </h2>
-            <input
-              id="pokemon-search"
-              type="text"
-              value={pokemon}
-              placeholder="Enter Pokemon Name"
-              onChange={(e) => setPokemon(e.target.value)}
-              className="w-full bg-transparent placeholder:text-slate-400 text-white text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-500 hover:border-slate-300 ring-4 ring-transparent focus:ring-slate-100 max-w-2xl"
-            />
-            {error ? (
-              <div className="w-full flex flex-col items-center">
-                <p className="mt-4 text-red-500">{error}</p>
-                <button
-                  className="btn-primary mt-6"
-                  onClick={() => fetchPokemonByName()}
-                  disabled={loading}
-                >
-                  {loading ? "Retrying..." : "Retry Search"}
-                </button>
-              </div>
-            ) : (
-              <div className="w-full flex flex-col items-center">
-                <button
-                  className="btn-primary mt-6"
-                  onClick={() => fetchPokemonByName()}
-                  disabled={loading || !pokemon.trim()}
-                >
-                  {loading ? "Loading..." : "Search for Pokemon"}
-                </button>
-              </div>
+          <div className="w-full flex flex-col items-center">
+            <button
+              className="btn-primary mt-6"
+              onClick={() => fetchPokemonByName()}
+              disabled={loading || !pokemon.trim()}
+            >
+              {loading ? "Loading..." : "Search for Pokemon"}
+            </button>
+            {pokemonData && (
+              <TranslationBlock key={pokemonData.id} pokemon={pokemonData} />
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
