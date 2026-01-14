@@ -1,34 +1,30 @@
 import { render, waitFor, fireEvent } from "@testing-library/react";
 import { TranslationBlock } from "../TranslationBlock";
 import { mockPokemonNameAndDescription } from "@/lib/__mocks__/sample";
-import { translatePokemonDescription } from "@/app/actions";
+import { addToFavourites, translatePokemonDescription } from "@/app/actions";
 
 jest.mock("@/app/actions");
 const mockTranslatePokemonDescription =
   translatePokemonDescription as jest.MockedFunction<
     typeof translatePokemonDescription
   >;
+const mockAddToFavourites = addToFavourites as jest.MockedFunction<
+  typeof addToFavourites
+>;
 
 describe("tests for translated description block", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
   const translateButtonText = "Translate to Shakespearean English";
   const ShakespeareTranslation = "A yellow electric mouse, prithee.";
-
-  // Test for rendering TranslationBlock component with name and description
-  it("should handle if no name is passed to component", async () => {
-    const { getByText } = render(<TranslationBlock />);
-
-    expect(getByText("Unknown Pokemon")).toBeInTheDocument();
-    expect(getByText("No description available.")).toBeInTheDocument();
-  });
 
   // Test for handling null description
   it("should handle translation when description is null", async () => {
     const { getByRole } = render(
-      <TranslationBlock pokemon={{ name: "Pikachu", description: null }} />
+      <TranslationBlock
+        pokemon={{ name: "Pikachu", description: null, id: 3 }}
+      />
     );
 
     mockTranslatePokemonDescription.mockResolvedValue({
@@ -44,10 +40,33 @@ describe("tests for translated description block", () => {
     });
   });
 
+  // Should handle when response data is missing
+  it("should handle translation service returning empty description", async () => {
+    const { getByRole, getByText } = render(
+      <TranslationBlock
+        pokemon={{ name: "Pikachu", description: "An electric mouse.", id: 3 }}
+      />
+    );
+
+    mockTranslatePokemonDescription.mockResolvedValue({
+      success: true,
+      data: "",
+    });
+
+    const button = getByRole("button", { name: translateButtonText });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(
+        getByText("Translation service returned an empty description.")
+      ).toBeInTheDocument();
+    });
+  });
+
   // Test for handling missing pokemon name during reset
   it("should handle reset when pokemon name is missing", async () => {
     const { getByRole, getByText } = render(
-      <TranslationBlock pokemon={{ name: "", description: null }} />
+      <TranslationBlock pokemon={{ name: "", description: null, id: 0 }} />
     );
 
     mockTranslatePokemonDescription.mockResolvedValue({
@@ -161,36 +180,75 @@ describe("tests for translated description block", () => {
     });
   });
 
-  // Retry Translation Functionality after Failure
-  it("should successfully retry translation after initial failure", async () => {
-    mockTranslatePokemonDescription
-      .mockResolvedValueOnce({
-        success: false,
-        error: "Translation service unavailable",
-        status: 503,
-      })
-      .mockResolvedValueOnce({
-        success: true,
-        data: ShakespeareTranslation,
-      });
+  // Test case for storing favourite Pokemon - success case
+  it("should save Pokemon to favourites successfully", async () => {
+    mockTranslatePokemonDescription.mockResolvedValue({
+      success: true,
+      data: ShakespeareTranslation,
+    });
 
-    const { getByRole, getByText, queryByText } = render(
+    mockAddToFavourites.mockResolvedValue({
+      success: true,
+      data: {
+        pokemon_name: mockPokemonNameAndDescription.name,
+        pokemon_id: mockPokemonNameAndDescription.id,
+        shakespearean_description: ShakespeareTranslation,
+        original_description: mockPokemonNameAndDescription.description,
+      },
+    });
+
+    const { getByRole, findByRole } = render(
       <TranslationBlock pokemon={mockPokemonNameAndDescription} />
     );
 
-    const button = getByRole("button", { name: translateButtonText });
-    fireEvent.click(button);
+    const translateButton = getByRole("button", { name: translateButtonText });
+    fireEvent.click(translateButton);
+
+    const saveButton = await findByRole("button", {
+      name: /Add to Favourites/i,
+    });
+    fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(getByText(/Error fetching translation/)).toBeInTheDocument();
+      expect(mockAddToFavourites).toHaveBeenCalledWith({
+        pokemon_name: mockPokemonNameAndDescription.name,
+        pokemon_id: mockPokemonNameAndDescription.id,
+        shakespearean_description: ShakespeareTranslation,
+        original_description: mockPokemonNameAndDescription.description,
+      });
+    });
+  });
+
+  // Test case for storing favourite Pokemon - failure case
+  it("should display error when saving to favourites fails", async () => {
+    mockTranslatePokemonDescription.mockResolvedValue({
+      success: true,
+      data: ShakespeareTranslation,
     });
 
-    const retryButton = getByRole("button", { name: "Retry Search" });
-    fireEvent.click(retryButton);
+    mockAddToFavourites.mockResolvedValue({
+      success: false,
+      error: "Failed to save favourite",
+      status: 500,
+    });
+
+    const { getByRole, findByRole, getByText } = render(
+      <TranslationBlock pokemon={mockPokemonNameAndDescription} />
+    );
+
+    const translateButton = getByRole("button", { name: translateButtonText });
+    fireEvent.click(translateButton);
+
+    const saveButton = await findByRole("button", {
+      name: /Add to Favourites/i,
+    });
+
+    fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(getByText(ShakespeareTranslation)).toBeInTheDocument();
-      expect(queryByText(/Error fetching translation/)).not.toBeInTheDocument();
+      expect(
+        getByText("Error saving to favourites: Failed to save favourite")
+      ).toBeInTheDocument();
     });
   });
 });

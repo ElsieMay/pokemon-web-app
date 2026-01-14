@@ -6,8 +6,11 @@ import {
 import { Pokemon } from "@/types/pokemon";
 import { headers } from "next/headers";
 
-const requestCounts = new Map<string, { count: number; resetAt: number }>();
-export interface RateLimitConfig {
+export const requestCounts = new Map<
+  string,
+  { count: number; resetAt: number }
+>();
+interface RateLimitConfig {
   windowMs?: number;
   maxRequests?: number;
 }
@@ -152,7 +155,10 @@ export function isValidUUID(uuid: string): boolean {
  * @param userId - Optional user ID to validate
  * @throws Error if userId format is invalid
  */
-export function validateUserId(userId?: string): void {
+export function validateUserId(userId: string): void {
+  if (!userId || userId.trim().length === 0) {
+    throw new Error("User ID is required");
+  }
   if (userId && !isValidUUID(userId)) {
     throw new Error("Invalid user ID format");
   }

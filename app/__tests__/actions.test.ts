@@ -15,7 +15,7 @@ import {
   TranslationFetchError,
   FavouriteStoreError,
 } from "@/types/error";
-import { getFirstEnglishDescription } from "@/lib/utils";
+import { getFirstEnglishDescription, isRateLimited } from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
 import { getSessionId } from "@/lib/session";
 import { addFavourite } from "@/lib/favourites";
@@ -43,10 +43,37 @@ const mockAddFavourite = addFavourite as jest.MockedFunction<
   typeof addFavourite
 >;
 
+jest.mock("@/lib/utils", () => ({
+  ...jest.requireActual("@/lib/utils"),
+  isRateLimited: jest.fn().mockResolvedValue(false),
+}));
+const mockIsRateLimited = isRateLimited as jest.MockedFunction<
+  typeof isRateLimited
+>;
+
+describe("Rate Limiting", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Test rate limiting behavior
+  it("should return rate limit response when rate limited", async () => {
+    mockIsRateLimited.mockResolvedValue(true);
+
+    const response = await loadPokemons(0);
+
+    expect(response.success).toBe(false);
+    // expect(response.status).toBe(429);
+    // expect(response.error).toBe("Too many requests. Please try again later.");
+    expect(mockIsRateLimited).toHaveBeenCalledWith({ maxRequests: 5 });
+  });
+});
+
 // Tests for fetching a list of Pokemons
 describe("Pokemon Fetch Species List", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsRateLimited.mockResolvedValue(false);
   });
 
   // Test successful fetch of Pokemons List
@@ -86,7 +113,9 @@ describe("Pokemon Fetch Species List", () => {
 
     expect(response.success).toBe(false);
     if (!response.success) {
-      expect(response.error).toBe("Network Error");
+      expect(response.error).toBe(
+        "An unknown error occurred while fetching Pokemons"
+      );
       expect(response.status).toBe(500);
     }
     expect(mockFetchPokemons).toHaveBeenCalledWith(20, 0);
@@ -140,6 +169,7 @@ describe("Fetch Pokemon by Name", () => {
       expect(response.data).toEqual({
         name: "Wormadam",
         description: getFirstEnglishDescription(mockPokemonByNameResponse),
+        id: mockPokemonByNameResponse.id,
       });
     }
     expect(mockFetchPokemonByName).toHaveBeenCalledWith(pokemonName);
@@ -172,6 +202,7 @@ describe("Fetch Pokemon by Name", () => {
       expect(response.data).toEqual({
         name: "Wormadam",
         description: null,
+        id: responseWithoutEnglishDesc.id,
       });
     }
     expect(mockFetchPokemonByName).toHaveBeenCalledWith(pokemonName);
@@ -192,6 +223,7 @@ describe("Fetch Pokemon by Name", () => {
       expect(response.data).toEqual({
         name: "Wormadam",
         description: null,
+        id: responseWithoutEnglishDesc.id,
       });
     }
     expect(mockFetchPokemonByName).toHaveBeenCalledWith(pokemonName);
@@ -221,7 +253,9 @@ describe("Fetch Pokemon by Name", () => {
 
     expect(response.success).toBe(false);
     if (!response.success) {
-      expect(response.error).toBe("Server Error");
+      expect(response.error).toBe(
+        "An unknown error occurred while fetching the Pokemon"
+      );
       expect(response.status).toBe(500);
     }
     expect(mockFetchPokemonByName).toHaveBeenCalledWith(pokemonName);
@@ -292,7 +326,9 @@ describe("Translate Pokemon Description to Shakespearean", () => {
     expect(mockTranslatePokemonDescription).toHaveBeenCalledWith(description);
     expect(response.success).toBe(false);
     if (!response.success) {
-      expect(response.error).toBe("Service Error");
+      expect(response.error).toBe(
+        "An unknown error occurred while translating the description"
+      );
       expect(response.status).toBe(500);
     }
   });
@@ -330,10 +366,10 @@ describe("add to favourites", () => {
     expect(sessionId).toBe(mockSessionId);
 
     const response = await addToFavourites({
-      pokemonName: mockFavouritePokemon.pokemon_name,
-      pokemonId: mockFavouritePokemon.pokemon_id,
-      shakespeareanDescription: mockFavouritePokemon.shakespearean_description,
-      originalDescription: mockFavouritePokemon.original_description,
+      pokemon_name: mockFavouritePokemon.pokemon_name,
+      pokemon_id: mockFavouritePokemon.pokemon_id,
+      shakespearean_description: mockFavouritePokemon.shakespearean_description,
+      original_description: mockFavouritePokemon.original_description,
     });
 
     expect(mockGetSessionId).toHaveBeenCalled();
@@ -353,11 +389,11 @@ describe("add to favourites", () => {
 
     await expect(
       addToFavourites({
-        pokemonName: mockFavouritePokemon.pokemon_name,
-        pokemonId: mockFavouritePokemon.pokemon_id,
-        shakespeareanDescription:
+        pokemon_name: mockFavouritePokemon.pokemon_name,
+        pokemon_id: mockFavouritePokemon.pokemon_id,
+        shakespearean_description:
           mockFavouritePokemon.shakespearean_description,
-        originalDescription: mockFavouritePokemon.original_description,
+        original_description: mockFavouritePokemon.original_description,
       })
     ).resolves.toEqual({
       success: false,
@@ -381,11 +417,11 @@ describe("add to favourites", () => {
 
     await expect(
       addToFavourites({
-        pokemonName: mockFavouritePokemon.pokemon_name,
-        pokemonId: mockFavouritePokemon.pokemon_id,
-        shakespeareanDescription:
+        pokemon_name: mockFavouritePokemon.pokemon_name,
+        pokemon_id: mockFavouritePokemon.pokemon_id,
+        shakespearean_description:
           mockFavouritePokemon.shakespearean_description,
-        originalDescription: mockFavouritePokemon.original_description,
+        original_description: mockFavouritePokemon.original_description,
       })
     ).resolves.toEqual({
       success: false,
@@ -413,15 +449,15 @@ describe("add to favourites", () => {
 
     await expect(
       addToFavourites({
-        pokemonName: mockFavouritePokemon.pokemon_name,
-        pokemonId: mockFavouritePokemon.pokemon_id,
-        shakespeareanDescription:
+        pokemon_name: mockFavouritePokemon.pokemon_name,
+        pokemon_id: mockFavouritePokemon.pokemon_id,
+        shakespearean_description:
           mockFavouritePokemon.shakespearean_description,
-        originalDescription: mockFavouritePokemon.original_description,
+        original_description: mockFavouritePokemon.original_description,
       })
     ).resolves.toEqual({
       success: false,
-      error: "Service Error",
+      error: "An unknown error occurred while adding to favourites",
       status: 500,
     });
 

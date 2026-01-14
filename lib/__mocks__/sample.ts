@@ -1,18 +1,22 @@
 export const mockPokemonSpeciesResponse = [
   {
     name: "Wormadam",
+    id: 1,
   },
   {
     name: "ivysaur",
+    id: 2,
   },
 ];
 
 export const mockAdditionalPokemonSpeciesResponse = [
   {
     name: "charmander",
+    id: 4,
   },
   {
     name: "charmeleon",
+    id: 5,
   },
 ];
 
@@ -34,11 +38,13 @@ export const mockPokemonByNameResponse = {
       },
     },
   ],
+  id: 2,
 };
 
 export const mockPokemonNameAndDescription = {
   name: "Pikachu",
   description: "A yellow electric mouse.",
+  id: 25,
 };
 
 export const mockFavouritePokemon = {

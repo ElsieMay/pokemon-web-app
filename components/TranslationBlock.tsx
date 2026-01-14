@@ -4,19 +4,18 @@ import { PokemonDetails } from "@/types/pokemon";
 import { useState } from "react";
 
 interface TranslationBlockProps {
-  pokemon?: PokemonDetails;
+  pokemon: PokemonDetails;
 }
 
 export function TranslationBlock({
   pokemon: pokemonDescription,
 }: TranslationBlockProps) {
   // State to manage Pokemon description and translation status
-  const [pokemon, setPokemonData] = useState<PokemonDetails | null>(
-    pokemonDescription || null
-  );
+  const [pokemon, setPokemonData] =
+    useState<PokemonDetails>(pokemonDescription);
   // Store the original description to allow resetting
-  const [originalDescription] = useState<string | null>(
-    pokemonDescription?.description || null
+  const [originalDescription] = useState<string>(
+    pokemonDescription.description || ""
   );
   const [isTranslated, setIsTranslated] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,11 +38,6 @@ export function TranslationBlock({
         setLoading(false);
         return;
       }
-      if (!pokemon) {
-        setError("No Pokemon data available to update description.");
-        setLoading(false);
-        return;
-      }
       setError(null);
       setPokemonData({
         ...pokemon!,
@@ -52,18 +46,12 @@ export function TranslationBlock({
       setIsTranslated(true);
     } else {
       setError(`Error fetching translation: ` + response.error);
-      setPokemonData(null);
     }
 
     setLoading(false);
   };
 
   const resetToOriginal = () => {
-    if (!pokemon) {
-      setError("No Pokemon data available.");
-      return;
-    }
-
     setPokemonData({
       ...pokemon!,
       description: originalDescription || "",
@@ -77,16 +65,10 @@ export function TranslationBlock({
     setLoadingSave(true);
     setError(null);
 
-    if (!pokemon) {
-      setError("Invalid Pokemon data. Cannot save to favourites.");
-      setLoadingSave(false);
-      return;
-    }
-
     const favouritePokemon: FavouritePokemon = {
-      pokemon_name: pokemon.name,
-      pokemon_id: pokemon.id,
-      shakespearean_description: pokemon.description || "",
+      pokemon_name: pokemon!.name,
+      pokemon_id: pokemon!.id,
+      shakespearean_description: pokemon!.description || "",
       original_description: originalDescription || "",
     };
     const response = await addToFavourites(favouritePokemon);
@@ -146,6 +128,7 @@ export function TranslationBlock({
               <button
                 className="btn-primary mt-6"
                 onClick={() => savePokemonToFavourites()}
+                disabled={loadingSave}
               >
                 {loadingSave ? "Loading..." : "Add to Favourites"}
               </button>

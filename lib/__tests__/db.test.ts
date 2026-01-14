@@ -16,9 +16,11 @@ describe("Database Module", () => {
     MockedPool.mockImplementation(() => mockPool);
   });
 
+  const originalEnv = process.env.DATABASE_URL;
+  const testUrl = "postgresql://user:password@localhost:5432/dbname";
+
   // DB URL not set test
   it("should throw an error if DATABASE_URL is not set", () => {
-    const originalEnv = process.env.DATABASE_URL;
     delete process.env.DATABASE_URL;
 
     expect(() => {
@@ -30,23 +32,22 @@ describe("Database Module", () => {
 
   //   Pool creation test
   it("should create a Pool with the correct connection string", () => {
-    const originalEnv = process.env.DATABASE_URL;
-    const testUrl = "postgresql://user:password@localhost:5432/dbname";
     process.env.DATABASE_URL = testUrl;
 
     getNeonPool();
 
-    expect(Pool).toHaveBeenCalledWith({ connectionString: testUrl });
+    expect(Pool).toHaveBeenCalledWith({
+      connectionString: testUrl,
+      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 60000,
+      max: 5,
+    });
 
     process.env.DATABASE_URL = originalEnv;
   });
 
   //   getNeonPool should return the same pool instance
   it("should return the same pool instance on multiple calls", () => {
-    const originalEnv = process.env.DATABASE_URL;
-    process.env.DATABASE_URL =
-      "postgresql://user:password@localhost:5432/dbname";
-
     const pool1 = getNeonPool();
     const pool2 = getNeonPool();
 
@@ -57,10 +58,6 @@ describe("Database Module", () => {
 
   // SQL query execution test
   it("should execute a SQL query and return results", async () => {
-    const originalEnv = process.env.DATABASE_URL;
-    process.env.DATABASE_URL =
-      "postgresql://user:password@localhost:5432/dbname";
-
     const sampleRows = [
       { id: 1, name: "Test" },
       { id: 2, name: "Demo" },

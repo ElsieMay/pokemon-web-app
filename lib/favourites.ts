@@ -14,7 +14,7 @@ export async function addFavourite(
   pokemonId: number,
   shakespeareanDescription: string,
   originalDescription: string,
-  userId?: string
+  userId: string
 ): Promise<FavouritePokemon> {
   // Validate and sanitise inputs
   const validatedName = validatePokemonName(pokemonName);
@@ -36,7 +36,7 @@ export async function addFavourite(
     [
       validatedName,
       pokemonId,
-      userId || null,
+      userId,
       validatedShakespearean,
       validatedOriginal,
     ]
@@ -53,7 +53,7 @@ export async function addFavourite(
  * Get all favourite Pokemons for a user
  */
 export async function getFavourites(
-  userId?: string
+  userId: string
 ): Promise<FavouritePokemon[]> {
   validateUserId(userId);
 
@@ -61,7 +61,7 @@ export async function getFavourites(
     `SELECT pokemon_name, created_at, shakespearean_description, original_description 
      FROM favourites 
      WHERE user_id = $1`,
-    [userId || null]
+    [userId]
   );
 
   return result.map((fav) => FavouritePokemonSchema.parse(fav));

@@ -29,13 +29,14 @@ describe("Session Module", () => {
 
   const SESSION_ID = "pokemon_user_id";
   const MAX_AGE = 60 * 60 * 24 * 365; // 1 year max
+  const USER_ID = "mocked-uuid";
 
   test("should create a new session", async () => {
     const sessionId = await getSessionId();
 
-    expect(sessionId).toBe("user_mocked-uuid");
+    expect(sessionId).toBe(USER_ID);
     expect(mockGet).toHaveBeenCalledWith(SESSION_ID);
-    expect(mockSet).toHaveBeenCalledWith(SESSION_ID, "user_mocked-uuid", {
+    expect(mockSet).toHaveBeenCalledWith(SESSION_ID, USER_ID, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
@@ -56,7 +57,7 @@ describe("Session Module", () => {
 
   test("should invalidate a session", () => {
     return getSessionId().then(async (sessionId) => {
-      expect(sessionId).toBe("user_mocked-uuid");
+      expect(sessionId).toBe(USER_ID);
 
       await mockDelete(SESSION_ID);
 
