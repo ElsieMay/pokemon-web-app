@@ -25,7 +25,6 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pokemonData, setPokemonData] = useState<PokemonDetails | null>(null);
-  // const [hasSearched, setHasSearched] = useState(false);
 
   /**
    * Fetches a Pokemon by name and updates the state.
@@ -33,7 +32,6 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
    */
   const fetchPokemonByName = async () => {
     setLoading(true);
-    // setHasSearched(true);
 
     const response = await searchPokemonByName(pokemon);
     if (response.success) {

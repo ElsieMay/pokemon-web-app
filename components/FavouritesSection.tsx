@@ -44,6 +44,10 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
     setLoading(false);
   };
 
+  const handleDeleteSuccess = (pokemonId: number) => {
+    setPokemonList((prev) => prev.filter((p) => p.pokemon_id !== pokemonId));
+  };
+
   // Safety check for initial data
   if (!pokemonList) {
     return (
@@ -79,7 +83,11 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
         <div className="w-full flex flex-col items-center">
           <div className="w-full max-w-7xl flex flex-col gap-6">
             {pokemonList.map((pokemon) => (
-              <PokemonCard key={pokemon.pokemon_id} pokemon={pokemon} />
+              <PokemonCard
+                key={pokemon.pokemon_id}
+                pokemon={pokemon}
+                onDelete={() => handleDeleteSuccess(pokemon.pokemon_id)}
+              />
             ))}
           </div>
           <button

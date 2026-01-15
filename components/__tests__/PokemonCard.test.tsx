@@ -1,6 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { PokemonCard } from "../PokemonCard";
 import { FavouritePokemon } from "@/types/favourite";
+import { deleteFavouriteById } from "@/app/actions";
+
+jest.mock("@/app/actions");
 
 describe("PokemonCard", () => {
   const mockPokemon: FavouritePokemon = {
@@ -10,6 +14,10 @@ describe("PokemonCard", () => {
     shakespearean_description: "A mouse of lightning!",
     created_at: new Date("2024-01-01"),
   };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it("should render pokemon with all details", () => {
     render(<PokemonCard pokemon={mockPokemon} />);
@@ -62,22 +70,136 @@ describe("PokemonCard", () => {
     expect(screen.queryByText(/N\/A/i)).not.toBeInTheDocument();
   });
 
-  it("should display delete button and handle click", () => {
-    // Mock console.log to verify button click
-    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+  describe("Delete functionality", () => {
+    it("should render delete button", () => {
+      render(<PokemonCard pokemon={mockPokemon} />);
 
-    render(<PokemonCard pokemon={mockPokemon} />);
-
-    const deleteButton = screen.getByRole("button", {
-      name: /Delete from Favourites/i,
+      const deleteButton = screen.getByRole("button", {
+        name: /delete from favourites/i,
+      });
+      expect(deleteButton).toBeInTheDocument();
     });
-    expect(deleteButton).toBeInTheDocument();
 
-    deleteButton.click();
+    it("should successfully delete pokemon", async () => {
+      const user = userEvent.setup();
+      const mockOnDelete = jest.fn();
+      (deleteFavouriteById as jest.Mock).mockResolvedValue({ success: true });
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      `Delete ${mockPokemon.pokemon_name}`
-    );
-    consoleSpy.mockRestore();
+      render(<PokemonCard pokemon={mockPokemon} onDelete={mockOnDelete} />);
+
+      const deleteButton = screen.getByRole("button", {
+        name: /delete from favourites/i,
+      });
+      await user.click(deleteButton);
+
+      expect(deleteFavouriteById).toHaveBeenCalledWith(25);
+
+      await waitFor(() => {
+        expect(screen.getByText(/deleted successfully/i)).toBeInTheDocument();
+      });
+
+      await waitFor(
+        () => {
+          expect(mockOnDelete).toHaveBeenCalled();
+        },
+        { timeout: 2000 }
+      );
+    });
+
+    it("should handle delete failure and show error message", async () => {
+      const user = userEvent.setup();
+      (deleteFavouriteById as jest.Mock).mockResolvedValue({ success: false });
+
+      render(<PokemonCard pokemon={mockPokemon} />);
+
+      const deleteButton = screen.getByRole("button", {
+        name: /delete from favourites/i,
+      });
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/unable to delete "pikachu"/i)
+        ).toBeInTheDocument();
+      });
+
+      expect(
+        screen.getByRole("button", { name: /retry/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /cancel/i })
+      ).toBeInTheDocument();
+    });
+
+    it("should retry delete after failure", async () => {
+      const user = userEvent.setup();
+      (deleteFavouriteById as jest.Mock)
+        .mockResolvedValueOnce({ success: false })
+        .mockResolvedValueOnce({ success: true });
+
+      render(<PokemonCard pokemon={mockPokemon} />);
+
+      const deleteButton = screen.getByRole("button", {
+        name: /delete from favourites/i,
+      });
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/unable to delete "pikachu"/i)
+        ).toBeInTheDocument();
+      });
+
+      const retryButton = screen.getByRole("button", { name: /retry/i });
+      await user.click(retryButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/deleted successfully/i)).toBeInTheDocument();
+      });
+    });
+
+    it("should cancel error state", async () => {
+      const user = userEvent.setup();
+      (deleteFavouriteById as jest.Mock).mockResolvedValue({ success: false });
+
+      render(<PokemonCard pokemon={mockPokemon} />);
+
+      const deleteButton = screen.getByRole("button", {
+        name: /delete from favourites/i,
+      });
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/unable to delete "pikachu"/i)
+        ).toBeInTheDocument();
+      });
+
+      const cancelButton = screen.getByRole("button", { name: /cancel/i });
+      await user.click(cancelButton);
+
+      expect(
+        screen.queryByText(/unable to delete "pikachu"/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /delete from favourites/i })
+      ).toBeInTheDocument();
+    });
+
+    it("should not call onDelete callback when not provided", async () => {
+      const user = userEvent.setup();
+      (deleteFavouriteById as jest.Mock).mockResolvedValue({ success: true });
+
+      render(<PokemonCard pokemon={mockPokemon} />);
+
+      const deleteButton = screen.getByRole("button", {
+        name: /delete from favourites/i,
+      });
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/deleted successfully/i)).toBeInTheDocument();
+      });
+    });
   });
 });

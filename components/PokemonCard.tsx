@@ -1,8 +1,12 @@
+import { deleteFavouriteById } from "@/app/actions";
 import { FavouritePokemon } from "@/types/favourite";
+import { useState } from "react";
 
 interface PokemonCardProps {
   /** Pokemon data from the favourites table */
   pokemon: FavouritePokemon;
+  /** Callback function to trigger refresh after deletion */
+  onDelete?: () => void;
 }
 
 /**
@@ -16,7 +20,7 @@ interface PokemonCardProps {
  * <PokemonCard pokemon={pokemonData} />
  * ```
  */
-export function PokemonCard({ pokemon }: PokemonCardProps) {
+export function PokemonCard({ pokemon, onDelete }: PokemonCardProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-GB", {
       dateStyle: "medium",
@@ -24,14 +28,40 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
     }).format(new Date(date));
   };
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleted, setDeleted] = useState(false);
+
+  /**
+   * Handles the deletion of a favourite Pokemon.
+   */
+  const handleDelete = async () => {
+    setLoading(true);
+
+    const response = await deleteFavouriteById(pokemon.pokemon_id);
+    if (response.success) {
+      setError(null);
+      setDeleted(true);
+      setTimeout(() => {
+        onDelete?.();
+      }, 1500);
+    } else {
+      setError(`Unable to delete "${pokemon.pokemon_name}". Please try again.`);
+    }
+    setLoading(false);
+  };
+
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-shadow">
+    <div
+      className={`border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-500 ${
+        deleted ? "opacity-0 scale-95" : "opacity-100 scale-100"
+      }`}
+    >
       <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-2xl font-bold capitalize text-gray-900 dark:text-white">
           {pokemon.pokemon_name}
         </h3>
       </div>
-
       <div className="mb-4">
         <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
           <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
@@ -41,7 +71,6 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
           {pokemon.original_description || "No description available"}
         </p>
       </div>
-
       <div className="mb-4">
         <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
           <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
@@ -52,20 +81,49 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
             "No Shakespearean translation available"}
         </p>
       </div>
-
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-        {pokemon.created_at && (
-          <div>
-            <span className="font-semibold">Added: </span>
-            <span>{formatDate(pokemon.created_at)}</span>
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        {deleted ? (
+          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+            <span className="text-lg">✓</span>
+            <p className="text-sm font-medium">Deleted successfully!</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-wrap gap-4 justify-between items-center">
+            <p className="mt-4 text-red-500 pb-4">{error}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleDelete()}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                {loading ? "Retrying..." : "Retry"}
+              </button>
+              <button
+                onClick={() => setError(null)}
+                disabled={loading}
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 disabled:cursor-not-allowed text-gray-800 dark:text-white text-sm font-medium rounded-md transition-colors duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-4 justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+            {pokemon.created_at && (
+              <div>
+                <span className="font-semibold">Added: </span>
+                <span>{formatDate(pokemon.created_at)}</span>
+              </div>
+            )}
+            <button
+              onClick={() => handleDelete()}
+              disabled={loading}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+              {loading ? "Deleting..." : "Delete from Favourites"}
+            </button>
           </div>
         )}
-        <button
-          onClick={() => console.log(`Delete ${pokemon.pokemon_name}`)}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-        >
-          Delete from Favourites
-        </button>
       </div>
     </div>
   );

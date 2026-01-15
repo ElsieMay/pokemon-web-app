@@ -69,22 +69,21 @@ export async function getFavourites(
 
 /**
  * Delete a favourite Pokemon by its ID
- * @returns An object indicating if the deletion was successful and the number of rows affected
  */
 export async function deleteFavourite(
-  favouriteId: number,
+  pokemonId: number,
   userId: string
 ): Promise<void> {
   validateUserId(userId);
 
-  const result = await query<{ id: number }>(
+  const result = await query<{ deleted: number }>(
     `DELETE FROM favourites 
-     WHERE id = $1 AND user_id = $2
-     RETURNING id`,
-    [favouriteId, userId]
+     WHERE pokemon_id = $1 AND user_id = $2
+     RETURNING 1 as deleted`,
+    [pokemonId, userId]
   );
 
-  if (!result[0]) {
+  if (result.length === 0) {
     throw new Error("Failed to delete favourite");
   }
 

@@ -162,7 +162,7 @@ export async function getAllFavourites(): Promise<
  *  Delete a Favourite Pokemon by its ID
  */
 export async function deleteFavouriteById(
-  favouriteId: number
+  pokemonId: number
 ): Promise<ApiResponse<null>> {
   try {
     if (await isRateLimited()) {
@@ -170,7 +170,7 @@ export async function deleteFavouriteById(
     }
 
     const userId = await getSessionId();
-    await deleteFavourite(favouriteId, userId);
+    await deleteFavourite(pokemonId, userId);
 
     return {
       success: true,

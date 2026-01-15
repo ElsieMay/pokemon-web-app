@@ -122,8 +122,8 @@ describe("Favourites Module", () => {
 
     expect(mockQuery).toHaveBeenCalledWith(
       `DELETE FROM favourites 
-     WHERE id = $1 AND user_id = $2
-     RETURNING id`,
+     WHERE pokemon_id = $1 AND user_id = $2
+     RETURNING 1 as deleted`,
       [mockFavouritePokemon.pokemon_id, mockFavouritePokemon.user_id]
     );
 

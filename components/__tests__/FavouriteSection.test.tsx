@@ -51,106 +51,137 @@ describe("FavouriteSection", () => {
       });
     });
   });
-});
 
-// Functional tests
-it("should render favourite Pokémons and load more on button click", async () => {
-  mockGetFavourites.mockResolvedValueOnce({
-    success: true,
-    data: initialFavourites,
+  // Functional tests
+  it("should render favourite Pokémons and load more on button click", async () => {
+    mockGetFavourites.mockResolvedValueOnce({
+      success: true,
+      data: initialFavourites,
+    });
+
+    const { getByText, getByRole } = render(<FavouriteSection pokemons={[]} />);
+
+    const loadButton = getByRole("button", {
+      name: /Show Your Favourite Pokémons/i,
+    });
+    fireEvent.click(loadButton);
+
+    await waitFor(() => {
+      expect(mockGetFavourites).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(getByText("Pikachu")).toBeInTheDocument();
+      expect(getByText("Charmander")).toBeInTheDocument();
+    });
   });
 
-  const { getByText, getByRole } = render(<FavouriteSection pokemons={[]} />);
+  // Error handling tests
+  it("should handle errors when fetching favourite Pokémons", async () => {
+    mockGetFavourites.mockResolvedValueOnce({
+      success: false,
+      error: "Unable to load Pokémons. Please try again.",
+      status: 500,
+    });
 
-  const loadButton = getByRole("button", {
-    name: /Show Your Favourite Pokémons/i,
+    const { getByText, getByRole } = render(<FavouriteSection pokemons={[]} />);
+
+    const loadButton = getByRole("button", {
+      name: /Show Your Favourite Pokémons/i,
+    });
+    fireEvent.click(loadButton);
+
+    await waitFor(() => {
+      expect(mockGetFavourites).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(
+        getByText("Unable to load Pokémons. Please try again.")
+      ).toBeInTheDocument();
+    });
   });
-  fireEvent.click(loadButton);
 
-  await waitFor(() => {
-    expect(mockGetFavourites).toHaveBeenCalled();
+  it("should retry fetching favourite Pokémons after error", async () => {
+    mockGetFavourites.mockResolvedValueOnce({
+      success: false,
+      error: "Unable to load Pokémons. Please try again.",
+      status: 500,
+    });
+
+    const { getByText, getByRole } = render(<FavouriteSection pokemons={[]} />);
+
+    const loadButton = getByRole("button", {
+      name: /Show Your Favourite Pokémons/i,
+    });
+    fireEvent.click(loadButton);
+
+    await waitFor(() => {
+      expect(
+        getByText("Unable to load Pokémons. Please try again.")
+      ).toBeInTheDocument();
+    });
+
+    mockGetFavourites.mockResolvedValueOnce({
+      success: true,
+      data: initialFavourites,
+    });
+
+    const retryButton = getByRole("button", {
+      name: /Retry Fetching Favourite Pokémons/i,
+    });
+    fireEvent.click(retryButton);
+
+    await waitFor(() => {
+      expect(mockGetFavourites).toHaveBeenCalledTimes(2);
+    });
+
+    await waitFor(() => {
+      expect(getByText("Pikachu")).toBeInTheDocument();
+      expect(getByText("Charmander")).toBeInTheDocument();
+    });
   });
 
-  await waitFor(() => {
+  it("should show 'Refresh' button text when favourites list has items", async () => {
+    const { getByRole } = render(
+      <FavouriteSection pokemons={initialFavourites} />
+    );
+
+    const refreshButton = getByRole("button", {
+      name: /Refresh/i,
+    });
+
+    expect(refreshButton).toBeInTheDocument();
+  });
+
+  it("should re-render and update list after deleting a favourite Pokémon", async () => {
+    const { deleteFavouriteById } = await import("@/app/actions");
+    (deleteFavouriteById as jest.Mock).mockResolvedValue({ success: true });
+
+    const { getByText } = render(
+      <FavouriteSection pokemons={initialFavourites} />
+    );
+
     expect(getByText("Pikachu")).toBeInTheDocument();
     expect(getByText("Charmander")).toBeInTheDocument();
-  });
-});
 
-// Error handling tests
-it("should handle errors when fetching favourite Pokémons", async () => {
-  mockGetFavourites.mockResolvedValueOnce({
-    success: false,
-    error: "Unable to load Pokémons. Please try again.",
-    status: 500,
-  });
+    const deleteButtons = screen.getAllByRole("button", {
+      name: /delete from favourites/i,
+    });
 
-  const { getByText, getByRole } = render(<FavouriteSection pokemons={[]} />);
+    const firstDeleteButton = deleteButtons[0];
+    expect(firstDeleteButton).toBeInTheDocument();
+    fireEvent.click(firstDeleteButton!);
 
-  const loadButton = getByRole("button", {
-    name: /Show Your Favourite Pokémons/i,
-  });
-  fireEvent.click(loadButton);
+    // Wait for the pokemon to be removed from the list (includes 1500ms delay in PokemonCard)
+    await waitFor(
+      () => {
+        expect(screen.queryByText("Pikachu")).not.toBeInTheDocument();
+      },
+      { timeout: 2500 }
+    );
 
-  await waitFor(() => {
-    expect(mockGetFavourites).toHaveBeenCalled();
-  });
-
-  await waitFor(() => {
-    expect(
-      getByText("Unable to load Pokémons. Please try again.")
-    ).toBeInTheDocument();
-  });
-});
-
-it("should retry fetching favourite Pokémons after error", async () => {
-  mockGetFavourites.mockResolvedValueOnce({
-    success: false,
-    error: "Unable to load Pokémons. Please try again.",
-    status: 500,
-  });
-
-  const { getByText, getByRole } = render(<FavouriteSection pokemons={[]} />);
-
-  const loadButton = getByRole("button", {
-    name: /Show Your Favourite Pokémons/i,
-  });
-  fireEvent.click(loadButton);
-
-  await waitFor(() => {
-    expect(
-      getByText("Unable to load Pokémons. Please try again.")
-    ).toBeInTheDocument();
-  });
-
-  mockGetFavourites.mockResolvedValueOnce({
-    success: true,
-    data: initialFavourites,
-  });
-
-  const retryButton = getByRole("button", {
-    name: /Retry Fetching Favourite Pokémons/i,
-  });
-  fireEvent.click(retryButton);
-
-  await waitFor(() => {
-    expect(mockGetFavourites).toHaveBeenCalledTimes(2);
-  });
-
-  await waitFor(() => {
-    expect(getByText("Pikachu")).toBeInTheDocument();
+    // Charmander should still be there
     expect(getByText("Charmander")).toBeInTheDocument();
   });
-});
-
-it("should show 'Refresh' button text when favourites list has items", async () => {
-  const { getByRole } = render(
-    <FavouriteSection pokemons={initialFavourites} />
-  );
-
-  const refreshButton = getByRole("button", {
-    name: /Refresh/i,
-  });
-
-  expect(refreshButton).toBeInTheDocument();
 });
