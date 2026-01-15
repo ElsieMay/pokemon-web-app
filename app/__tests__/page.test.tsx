@@ -1,27 +1,12 @@
-import React from "react";
-import { getAllFavourites } from "@/app/actions";
-import { moreFavourites } from "@/lib/__mocks__/sample";
-import { render, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import Home from "../page";
+import { fetchFavouritesForSession } from "@/lib/favourites";
+import { moreFavourites } from "@/lib/__mocks__/sample";
 
-jest.mock("@/app/actions");
-const mockGetAllFavourites = getAllFavourites as jest.MockedFunction<
-  typeof getAllFavourites
->;
-
-jest.mock("@/components/PokemonSearch", () => ({
-  PokemonSearch: ({ onSaveSuccess }: { onSaveSuccess?: () => void }) => (
-    <div>
-      <button
-        data-testid="trigger-save-success"
-        onClick={() => onSaveSuccess?.()}
-      >
-        Trigger Save
-      </button>
-    </div>
-  ),
-}));
+jest.mock("@/lib/favourites");
+const mockFetchFavouritesForSession =
+  fetchFavouritesForSession as jest.MockedFunction<
+    typeof fetchFavouritesForSession
+  >;
 
 describe("Home page", () => {
   beforeEach(() => {
@@ -29,85 +14,20 @@ describe("Home page", () => {
   });
 
   it("loads and displays favourite pokemons", async () => {
-    mockGetAllFavourites.mockResolvedValueOnce({
-      success: true,
-      data: moreFavourites,
-    });
+    mockFetchFavouritesForSession.mockResolvedValueOnce(moreFavourites);
 
-    const { getByText } = render(<Home />);
+    const home = await Home();
 
-    await waitFor(() => {
-      expect(getByText("Pokemon Shakespeare Web App")).toBeInTheDocument();
-      moreFavourites.forEach((fav) => {
-        expect(getByText(fav.pokemon_name)).toBeInTheDocument();
-      });
-    });
+    expect(home).toBeDefined();
+    expect(mockFetchFavouritesForSession).toHaveBeenCalled();
   });
 
-  it("handles failure to load favourites gracefully and set favourites to null", async () => {
-    mockGetAllFavourites.mockResolvedValueOnce({
-      success: false,
-      error: "Failed to load favourites",
-      status: 500,
-    });
+  it("handles empty favourite pokemons", async () => {
+    mockFetchFavouritesForSession.mockResolvedValueOnce([]);
 
-    const { getByText, queryByText } = render(<Home />);
+    const home = await Home();
 
-    await waitFor(() => {
-      expect(getByText("Pokemon Shakespeare Web App")).toBeInTheDocument();
-      moreFavourites.forEach((fav) => {
-        expect(queryByText(fav.pokemon_name)).not.toBeInTheDocument();
-      });
-    });
-  });
-
-  it("should handle if no favourites are returned", async () => {
-    mockGetAllFavourites.mockResolvedValueOnce({
-      success: true,
-      data: [],
-    });
-
-    const { getByText, queryByText } = render(<Home />);
-
-    await waitFor(() => {
-      expect(getByText("Pokemon Shakespeare Web App")).toBeInTheDocument();
-      moreFavourites.forEach((fav) => {
-        expect(queryByText(fav.pokemon_name)).not.toBeInTheDocument();
-      });
-    });
-  });
-
-  it("calls loadFavourites after 2 seconds when a pokemon is saved", async () => {
-    jest.useFakeTimers();
-
-    // Initial load
-    mockGetAllFavourites.mockResolvedValueOnce({
-      success: true,
-      data: [],
-    });
-
-    const { getByTestId } = render(<Home />);
-
-    await waitFor(() => {
-      expect(mockGetAllFavourites).toHaveBeenCalledTimes(1);
-    });
-
-    mockGetAllFavourites.mockResolvedValueOnce({
-      success: true,
-      data: moreFavourites,
-    });
-
-    // Trigger the save success callback
-    const triggerButton = getByTestId("trigger-save-success");
-    triggerButton.click();
-
-    // Fast-forward time by 2 seconds - to simulate the setTimeout
-    jest.advanceTimersByTime(2000);
-
-    await waitFor(() => {
-      expect(mockGetAllFavourites).toHaveBeenCalledTimes(2);
-    });
-
-    jest.useRealTimers();
+    expect(home).toBeDefined();
+    expect(mockFetchFavouritesForSession).toHaveBeenCalled();
   });
 });

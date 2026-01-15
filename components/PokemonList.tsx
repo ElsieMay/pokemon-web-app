@@ -7,8 +7,7 @@ import { LoadingButton } from "./LoadingButton";
 import { ErrorBlock } from "./ErrorBlock";
 
 interface PokemonListProps {
-  /** Initial list of Pokemons */
-  pokemons: PokemonList;
+  initialFavourites: PokemonList;
 }
 
 /**
@@ -22,8 +21,8 @@ interface PokemonListProps {
  * <PokemonList pokemons={[]} />
  * ```
  */
-export function Pokemons({ pokemons }: PokemonListProps) {
-  const [pokemonList, setPokemonList] = useState(pokemons);
+export function Pokemons({ initialFavourites }: PokemonListProps) {
+  const [pokemonList, setPokemonList] = useState(initialFavourites);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

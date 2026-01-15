@@ -6,37 +6,29 @@ import { TranslationBlock } from "./TranslationBlock";
 import { PokemonDetails } from "@/types/pokemon";
 import { LoadingButton } from "./LoadingButton";
 import { ErrorBlock } from "./ErrorBlock";
+import { triggerFavouritesRefresh } from "./FavouritesSection";
 
 interface PokemonSearchProps {
   name?: string;
-  onSaveSuccess?: () => void;
 }
 
 /**
  * Searches for a Pokemon by name.
- *
- * @param props - Component props
- * @returns A rendered search component
+ * @param name - The name of the Pokemon to search for.
  *
  * @example
- * ```tsx
  * <PokemonSearch name="Pikachu" />
- * ```
  */
-export function PokemonSearch({ name, onSaveSuccess }: PokemonSearchProps) {
+export function PokemonSearch({ name }: PokemonSearchProps) {
   const [pokemon, setPokemon] = useState(name || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pokemonData, setPokemonData] = useState<PokemonDetails | null>(null);
 
-  /**
-   * Fetches a Pokemon by name and updates the state.
-   * Handles loading and error states.
-   */
   const fetchPokemonByName = async () => {
     setLoading(true);
-
     const response = await searchPokemonByName(pokemon);
+
     if (response.success) {
       setError(null);
       setPokemonData(response.data);
@@ -51,17 +43,13 @@ export function PokemonSearch({ name, onSaveSuccess }: PokemonSearchProps) {
     setLoading(false);
   };
 
-  const resetSearch = () => {
-    setPokemon("");
-    setPokemonData(null);
-    setError(null);
-  };
-
   const handleSaveSuccess = () => {
-    resetSearch();
-    if (onSaveSuccess) {
-      onSaveSuccess();
-    }
+    setTimeout(() => {
+      triggerFavouritesRefresh();
+      setPokemon("");
+      setPokemonData(null);
+      setError(null);
+    }, 2000);
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { getAllFavourites } from "@/app/actions";
 import { PokemonCard } from "./PokemonCard";
 import { FavouritePokemon } from "@/types/favourite";
@@ -8,37 +8,19 @@ import { LoadingButton } from "./LoadingButton";
 import { ErrorBlock } from "./ErrorBlock";
 
 interface FavouriteSectionProps {
-  pokemons: FavouritePokemon[];
-  onRefresh?: () => void;
+  initialFavourites: FavouritePokemon[];
 }
 
-/**
- * Displays a list of favourite Pokemons.
- *
- * @param props - Component props
- * @returns A rendered list of favourite Pokemons with load more functionality
- *
- * @example
- * ```tsx
- * <FavouriteSection pokemons={favouritePokemons} />
- * ```
- */
-export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
-  const [pokemonList, setPokemonList] = useState(pokemons);
+// Create a global event - trigger refresh
+const REFRESH_EVENT = "favourites:refresh";
+
+export function FavouriteSection({ initialFavourites }: FavouriteSectionProps) {
+  const [pokemonList, setPokemonList] = useState(initialFavourites);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setPokemonList(pokemons);
-  }, [pokemons]);
-
-  /**
-   * Fetches favourite Pokemons and appends them to the current list.
-   * Handles loading and error states.
-   */
-  const fetchFavouritePokemons = async () => {
+  const refreshFavourites = async () => {
     setLoading(true);
-
     const response = await getAllFavourites();
 
     if (response.success && response.data) {
@@ -47,27 +29,26 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
     } else {
       setError("Unable to load Pokémons. Please try again.");
     }
-
     setLoading(false);
   };
+
+  // Listen for refresh events
+  useEffect(() => {
+    const handleRefresh = () => refreshFavourites();
+    window.addEventListener(REFRESH_EVENT, handleRefresh);
+    return () => window.removeEventListener(REFRESH_EVENT, handleRefresh);
+  }, []);
 
   const handleDeleteSuccess = (pokemonId: number) => {
     setPokemonList((prev) => prev.filter((p) => p.pokemon_id !== pokemonId));
   };
 
-  // Safety check for initial data
-  if (!pokemonList) {
+  if (!pokemonList || pokemonList.length === 0) {
     return (
       <div className="w-full flex flex-col items-center pb-12">
         <p className="text-gray-700 dark:text-gray-300 mb-4">
-          No favourite Pokémons found as yet.
+          No favourite Pokémons saved yet. Search and save your first one!
         </p>
-        <LoadingButton
-          onClick={() => fetchFavouritePokemons()}
-          loading={loading}
-        >
-          Show Your Favourite Pokémons
-        </LoadingButton>
       </div>
     );
   }
@@ -80,7 +61,7 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
       {error ? (
         <ErrorBlock
           error={error}
-          onRetry={() => fetchFavouritePokemons()}
+          onRetry={refreshFavourites}
           loading={loading}
           retryText="Retry Fetching Favourite Pokémons"
         />
@@ -97,15 +78,18 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
           </div>
           <LoadingButton
             className="btn-primary mt-6"
-            onClick={() => fetchFavouritePokemons()}
+            onClick={refreshFavourites}
             loading={loading}
           >
-            {pokemonList.length > 0
-              ? "Refresh"
-              : "Show Your Favourite Pokémons"}
+            Refresh Favourites
           </LoadingButton>
         </div>
       )}
     </div>
   );
+}
+
+// Export helper to trigger refresh from anywhere
+export function triggerFavouritesRefresh() {
+  window.dispatchEvent(new Event("favourites:refresh"));
 }

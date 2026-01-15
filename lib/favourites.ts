@@ -1,6 +1,9 @@
+"use server";
+
 import { query } from "./db";
 import { FavouritePokemon, FavouritePokemonSchema } from "@/types/favourite";
 import { validateText, validateUserId } from "./utils";
+import { getSessionId } from "./session";
 
 /**
  * Add a Pokemon to favourites
@@ -81,4 +84,12 @@ export async function deleteFavourite(
   }
 
   return;
+}
+
+/**
+ * Server-side function to fetch favourites
+ */
+export async function fetchFavouritesForSession() {
+  const userId = await getSessionId();
+  return await getFavourites(userId);
 }

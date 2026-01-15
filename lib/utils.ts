@@ -13,6 +13,7 @@ export const requestCounts = new Map<
 
 /**
  * Simple in-memory rate limiter
+ * This can be replaced with a more robust solution (e.g., Redis) for production use.
  */
 const requestLog = new Map<string, number[]>();
 

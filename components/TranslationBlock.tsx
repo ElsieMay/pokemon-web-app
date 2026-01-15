@@ -5,11 +5,25 @@ import { useState } from "react";
 import { LoadingButton } from "./LoadingButton";
 import { ErrorBlock } from "./ErrorBlock";
 
-interface TranslationBlockProps {
+export interface TranslationBlockProps {
   pokemon: PokemonDetails;
   onSaveSuccess?: () => void;
 }
 
+/**
+ * Component to display and translate Pokemon descriptions.
+ * @component
+ * @param {TranslationBlockProps} props - Component props.
+ * @param {PokemonDetails} props.pokemon - The Pokemon details including description.
+ * @param {Function} [props.onSaveSuccess] - Optional callback when saving to favourites is successful.
+ * @returns {JSX.Element} The rendered TranslationBlock component.
+ *
+ * @example
+ * <TranslationBlock
+ *    pokemon={pokemonDetails}
+ *    onSaveSuccess={() => console.log("Saved to favourites!")}
+ * />
+ */
 export function TranslationBlock({
   pokemon: pokemonDescription,
   onSaveSuccess,
@@ -78,11 +92,10 @@ export function TranslationBlock({
     if (response.success) {
       setSaveError(null);
       setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-
       if (onSaveSuccess) {
         onSaveSuccess();
       }
+      setTimeout(() => setSaved(false), 2000);
     } else {
       setSaveError(
         `Unable to save to favourites. Please try again later or check if it's already saved.`

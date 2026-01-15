@@ -123,7 +123,7 @@ export function PokemonCard({ pokemon, onDelete }: PokemonCardProps) {
               loadingText="Deleting..."
               className="btn-delete"
             >
-              Delete from Favourites
+              Delete {pokemon.pokemon_name} from Favourites
             </LoadingButton>
           </div>
         )}

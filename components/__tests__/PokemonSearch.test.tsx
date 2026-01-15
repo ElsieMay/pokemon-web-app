@@ -1,29 +1,26 @@
 import { searchPokemonByName } from "@/app/actions";
 import { PokemonSearch } from "../PokemonSearch";
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { render, fireEvent, waitFor, act } from "@testing-library/react";
+import * as FavouritesSection from "../FavouritesSection";
+import { TranslationBlockProps } from "../TranslationBlock";
 
 jest.mock("@/app/actions");
+jest.mock("../FavouritesSection", () => ({
+  triggerFavouritesRefresh: jest.fn(),
+}));
+
+// Mock TranslationBlock to capture onSaveSuccess
+let capturedOnSaveSuccess: (() => void) | null = null;
+jest.mock("../TranslationBlock", () => ({
+  TranslationBlock: ({ pokemon, onSaveSuccess }: TranslationBlockProps) => {
+    capturedOnSaveSuccess = onSaveSuccess || null;
+    return <div data-testid="translation-block">{pokemon.name}</div>;
+  },
+}));
+
 const mockSearchPokemonByName = searchPokemonByName as jest.MockedFunction<
   typeof searchPokemonByName
 >;
-
-// Mock TranslationBlock to capture and trigger onSaveSuccess
-jest.mock("../TranslationBlock", () => ({
-  TranslationBlock: ({
-    pokemon,
-    onSaveSuccess,
-  }: {
-    pokemon: { name: string; description: string; id: number };
-    onSaveSuccess?: () => void;
-  }) => (
-    <div>
-      <div data-testid="translation-block">{pokemon.name}</div>
-      <button onClick={onSaveSuccess} data-testid="trigger-save">
-        Trigger Save Success
-      </button>
-    </div>
-  ),
-}));
 
 describe("Pokemon Search by Name Component", () => {
   beforeEach(() => {
@@ -32,21 +29,24 @@ describe("Pokemon Search by Name Component", () => {
 
   const pokemonName = "Wormadam";
 
-  // Basic Rendering and Search Functionality - success case
-  it("should call searchPokemonByName when search button is clicked", async () => {
-    const mockOnSaveSuccess = jest.fn();
+  // Success case - search and save
+  it("should search for Pokemon and reset form after successful save", async () => {
+    jest.useFakeTimers();
+    const mockTriggerRefresh =
+      FavouritesSection.triggerFavouritesRefresh as jest.Mock;
+    mockTriggerRefresh.mockClear();
 
     mockSearchPokemonByName.mockResolvedValue({
       success: true,
       data: {
-        name: "Wormadam",
-        description: "A test description",
-        id: 413,
+        name: "Pikachu",
+        description: "Electric mouse",
+        id: 25,
       },
     });
 
-    const { getByLabelText, getByText, getByTestId } = render(
-      <PokemonSearch name={pokemonName} onSaveSuccess={mockOnSaveSuccess} />
+    const { getByLabelText, getByText, queryByTestId } = render(
+      <PokemonSearch name={pokemonName} />
     );
 
     const input = getByLabelText("Pokemon Name") as HTMLInputElement;
@@ -61,22 +61,27 @@ describe("Pokemon Search by Name Component", () => {
 
     await waitFor(() => {
       expect(mockSearchPokemonByName).toHaveBeenCalledWith("Pikachu");
+      expect(queryByTestId("translation-block")).toBeInTheDocument();
     });
 
     expect(button).toHaveTextContent("Search for Pokemon");
 
-    await waitFor(() => {
-      expect(button).toHaveTextContent("Search for Pokemon");
+    // Should then trigger the onSaveSuccess callback
+    act(() => {
+      if (capturedOnSaveSuccess) {
+        capturedOnSaveSuccess();
+      }
+    });
+    act(() => {
+      jest.advanceTimersByTime(2000);
     });
 
-    // Test handleSaveSuccess callback
-    const triggerSaveButton = getByTestId("trigger-save");
-    fireEvent.click(triggerSaveButton);
+    // After handleSaveSuccess, the form should be reset
+    expect(input.value).toBe("");
+    expect(queryByTestId("translation-block")).not.toBeInTheDocument();
+    expect(mockTriggerRefresh).toHaveBeenCalled();
 
-    await waitFor(() => {
-      expect(input.value).toBe("");
-      expect(mockOnSaveSuccess).toHaveBeenCalledTimes(1);
-    });
+    jest.useRealTimers();
   });
 
   // Test rendering without initial name prop
@@ -90,78 +95,53 @@ describe("Pokemon Search by Name Component", () => {
     expect(button).toBeDisabled();
   });
 
-  // Error Handling - failure case
-  it("should display an error message when search fails", async () => {
-    mockSearchPokemonByName.mockResolvedValue({
-      success: false,
-      error: "Pokemon not found",
+  // Error Handling - failure cases
+  it.each([
+    {
       status: 404,
-    });
-
-    const { getByLabelText, getByText, findByText } = render(
-      <PokemonSearch name={pokemonName} />
-    );
-
-    const input = getByLabelText("Pokemon Name") as HTMLInputElement;
-    const button = getByText("Search for Pokemon");
-
-    expect(input.value).toBe(pokemonName);
-
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(mockSearchPokemonByName).toHaveBeenCalledWith(pokemonName);
-    });
-
-    const errorMessage = await findByText(
-      `Pokémon "${pokemonName}" not found. Please check the spelling.`
-    );
-    expect(errorMessage).toBeInTheDocument();
-
-    const retryButton = getByText("Retry Search");
-    expect(retryButton).toBeInTheDocument();
-
-    fireEvent.click(retryButton);
-
-    await waitFor(() => {
-      expect(mockSearchPokemonByName).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  it("should display an error message when search fails", async () => {
-    mockSearchPokemonByName.mockResolvedValue({
-      success: false,
-      error: "Pokemon not found",
+      expectedMessage: `Pokémon "${pokemonName}" not found. Please check the spelling.`,
+      description: "404 error",
+    },
+    {
       status: 500,
-    });
+      expectedMessage: `Unable to find "${pokemonName}". Please try again.`,
+      description: "server error",
+    },
+  ])(
+    "should display correct error message for $description",
+    async ({ status, expectedMessage }) => {
+      mockSearchPokemonByName.mockResolvedValue({
+        success: false,
+        error: "Pokemon not found",
+        status,
+      });
 
-    const { getByLabelText, getByText, findByText } = render(
-      <PokemonSearch name={pokemonName} />
-    );
+      const { getByLabelText, getByText, findByText } = render(
+        <PokemonSearch name={pokemonName} />
+      );
 
-    const input = getByLabelText("Pokemon Name") as HTMLInputElement;
-    const button = getByText("Search for Pokemon");
+      const input = getByLabelText("Pokemon Name") as HTMLInputElement;
+      const button = getByText("Search for Pokemon");
 
-    expect(input.value).toBe(pokemonName);
+      expect(input.value).toBe(pokemonName);
 
-    fireEvent.click(button);
+      fireEvent.click(button);
 
-    await waitFor(() => {
-      expect(mockSearchPokemonByName).toHaveBeenCalledWith(pokemonName);
-    });
+      await waitFor(() => {
+        expect(mockSearchPokemonByName).toHaveBeenCalledWith(pokemonName);
+      });
 
-    const errorMessage = await findByText(
-      `Unable to find "${pokemonName}". Please try again.`
-    );
-    expect(errorMessage).toBeInTheDocument();
+      const errorMessage = await findByText(expectedMessage);
+      expect(errorMessage).toBeInTheDocument();
 
-    const retryButton = getByText("Retry Search");
-    expect(retryButton).toBeInTheDocument();
+      const retryButton = getByText("Retry Search");
+      expect(retryButton).toBeInTheDocument();
 
-    fireEvent.click(retryButton);
+      fireEvent.click(retryButton);
 
-    await waitFor(() => {
-      expect(mockSearchPokemonByName).toHaveBeenCalledTimes(2);
-    });
-  });
+      await waitFor(() => {
+        expect(mockSearchPokemonByName).toHaveBeenCalledTimes(2);
+      });
+    }
+  );
 });

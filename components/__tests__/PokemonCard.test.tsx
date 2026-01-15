@@ -75,7 +75,7 @@ describe("PokemonCard", () => {
       render(<PokemonCard pokemon={mockPokemon} />);
 
       const deleteButton = screen.getByRole("button", {
-        name: /delete from favourites/i,
+        name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
       });
       expect(deleteButton).toBeInTheDocument();
     });
@@ -88,7 +88,7 @@ describe("PokemonCard", () => {
       render(<PokemonCard pokemon={mockPokemon} onDelete={mockOnDelete} />);
 
       const deleteButton = screen.getByRole("button", {
-        name: /delete from favourites/i,
+        name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
       });
       await user.click(deleteButton);
 
@@ -113,7 +113,7 @@ describe("PokemonCard", () => {
       render(<PokemonCard pokemon={mockPokemon} />);
 
       const deleteButton = screen.getByRole("button", {
-        name: /delete from favourites/i,
+        name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
       });
       await user.click(deleteButton);
 
@@ -140,7 +140,7 @@ describe("PokemonCard", () => {
       render(<PokemonCard pokemon={mockPokemon} />);
 
       const deleteButton = screen.getByRole("button", {
-        name: /delete from favourites/i,
+        name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
       });
       await user.click(deleteButton);
 
@@ -165,7 +165,7 @@ describe("PokemonCard", () => {
       render(<PokemonCard pokemon={mockPokemon} />);
 
       const deleteButton = screen.getByRole("button", {
-        name: /delete from favourites/i,
+        name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
       });
       await user.click(deleteButton);
 
@@ -182,7 +182,9 @@ describe("PokemonCard", () => {
         screen.queryByText(/unable to delete "pikachu"/i)
       ).not.toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /delete from favourites/i })
+        screen.getByRole("button", {
+          name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
+        })
       ).toBeInTheDocument();
     });
 
@@ -198,7 +200,7 @@ describe("PokemonCard", () => {
       render(<PokemonCard pokemon={mockPokemon} />);
 
       const deleteButton = screen.getByRole("button", {
-        name: /delete from favourites/i,
+        name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
       });
       await user.click(deleteButton);
 
@@ -223,7 +225,7 @@ describe("PokemonCard", () => {
       render(<PokemonCard pokemon={mockPokemon} />);
 
       const deleteButton = screen.getByRole("button", {
-        name: /delete from favourites/i,
+        name: `Delete ${mockPokemon?.pokemon_name} from Favourites`,
       });
       await user.click(deleteButton);
 

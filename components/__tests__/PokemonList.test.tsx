@@ -22,7 +22,7 @@ describe("Pokemon Fetch Species List", () => {
       },
     });
 
-    render(<Pokemons pokemons={{ results: [] }} />);
+    render(<Pokemons initialFavourites={{ results: [] }} />);
 
     const fetchButton = screen.getByRole("button", {
       name: /Present Some Pokemon Names/i,
@@ -47,7 +47,7 @@ describe("Pokemon Fetch Species List", () => {
       status: 500,
     });
 
-    render(<Pokemons pokemons={{ results: [] }} />);
+    render(<Pokemons initialFavourites={{ results: [] }} />);
 
     const fetchButton = screen.getByRole("button", {
       name: /Present Some Pokemon Names/i,
@@ -92,7 +92,7 @@ describe("Pokemon Fetch Species List", () => {
   describe("Safety checks for missing data", () => {
     it("should render fallback UI when pokemonList is null", () => {
       // @ts-expect-error - Testing null safety check
-      render(<Pokemons pokemons={null} />);
+      render(<Pokemons initialFavourites={null} />);
 
       expect(
         screen.getByText("No Pokémon data available as yet.")
@@ -104,7 +104,7 @@ describe("Pokemon Fetch Species List", () => {
 
     it("should render fallback UI when pokemonList.results is missing", () => {
       // @ts-expect-error - Testing undefined results safety check
-      render(<Pokemons pokemons={{}} />);
+      render(<Pokemons initialFavourites={{}} />);
 
       expect(
         screen.getByText("No Pokémon data available as yet.")
@@ -123,7 +123,7 @@ describe("Pokemon Fetch Species List", () => {
       });
 
       // @ts-expect-error - Testing null safety check
-      render(<Pokemons pokemons={null} />);
+      render(<Pokemons initialFavourites={null} />);
 
       const loadButton = screen.getByRole("button", { name: /Load Pokémon/i });
       fireEvent.click(loadButton);
