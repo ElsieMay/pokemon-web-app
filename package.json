@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:file": "jest",
-    "pages:build": "npx @cloudflare/next-on-pages"
+    "pages:build": "npx @cloudflare/next-on-pages",
+    "db:setup": "psql $DATABASE_URL -f lib/schema.sql"
   },
   "dependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
