@@ -61,4 +61,23 @@ describe("PokemonCard", () => {
     expect(screen.queryByText(/Added:/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/N\/A/i)).not.toBeInTheDocument();
   });
+
+  it("should display delete button and handle click", () => {
+    // Mock console.log to verify button click
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+
+    render(<PokemonCard pokemon={mockPokemon} />);
+
+    const deleteButton = screen.getByRole("button", {
+      name: /Delete from Favourites/i,
+    });
+    expect(deleteButton).toBeInTheDocument();
+
+    deleteButton.click();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      `Delete ${mockPokemon.pokemon_name}`
+    );
+    consoleSpy.mockRestore();
+  });
 });

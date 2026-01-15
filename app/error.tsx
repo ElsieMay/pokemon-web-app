@@ -4,8 +4,7 @@
  * Props for ErrorMessage component.
  */
 interface ErrorMessageProps {
-  error: Error & { digest?: string };
-  /** Callback function */
+  error: Error;
   reset: () => void;
 }
 
@@ -30,11 +29,6 @@ export default function ErrorMessage({ error, reset }: ErrorMessageProps) {
         <p className="text-gray-700 dark:text-gray-300">
           We encountered an unexpected error. Please try again.
         </p>
-        {error.digest && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            Error ID: {error.digest}
-          </p>
-        )}
         <button onClick={reset} className="mt-4 btn-primary">
           Try again
         </button>{" "}

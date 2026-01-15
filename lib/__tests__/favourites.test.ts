@@ -1,5 +1,5 @@
 import { mockFavouritePokemon } from "../__mocks__/sample";
-import { addFavourite, getFavourites } from "../favourites";
+import { addFavourite, getFavourites, deleteFavourite } from "../favourites";
 import { query } from "../db";
 import { validateUserId } from "../utils";
 
@@ -108,5 +108,49 @@ describe("Favourites Module", () => {
     await expect(getFavourites("invalid-uuid")).rejects.toThrow(
       "Invalid user ID format"
     );
+  });
+
+  // Test for delete favourite by favourite ID - success case
+  it("should successfully delete a favourite pokemon for user", async () => {
+    mockIsUserIdValid.mockReturnValue();
+    mockQuery.mockResolvedValue([mockFavouritePokemon]);
+
+    const result = await deleteFavourite(
+      mockFavouritePokemon.pokemon_id,
+      mockFavouritePokemon.user_id
+    );
+
+    expect(mockQuery).toHaveBeenCalledWith(
+      `DELETE FROM favourites 
+     WHERE id = $1 AND user_id = $2
+     RETURNING id`,
+      [mockFavouritePokemon.pokemon_id, mockFavouritePokemon.user_id]
+    );
+
+    expect(result).toEqual(undefined);
+  });
+
+  // Test for delete favourite with invalid user ID
+  it("should throw an error for invalid user ID when deleting favourite", async () => {
+    mockIsUserIdValid.mockImplementation(() => {
+      throw new Error("Invalid user ID format");
+    });
+
+    await expect(
+      deleteFavourite(mockFavouritePokemon.pokemon_id, "invalid-uuid")
+    ).rejects.toThrow("Invalid user ID format");
+  });
+
+  // Test for delete favourite - failure case
+  it("should throw an error when failing to delete a favourite pokemon", async () => {
+    mockIsUserIdValid.mockReturnValue();
+    mockQuery.mockResolvedValue([]);
+
+    await expect(
+      deleteFavourite(
+        mockFavouritePokemon.pokemon_id,
+        mockFavouritePokemon.user_id
+      )
+    ).rejects.toThrow("Failed to delete favourite");
   });
 });

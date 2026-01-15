@@ -53,13 +53,19 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
         </p>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 justify-between items-center text-xs text-gray-500 dark:text-gray-400">
         {pokemon.created_at && (
           <div>
             <span className="font-semibold">Added: </span>
             <span>{formatDate(pokemon.created_at)}</span>
           </div>
         )}
+        <button
+          onClick={() => console.log(`Delete ${pokemon.pokemon_name}`)}
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          Delete from Favourites
+        </button>
       </div>
     </div>
   );

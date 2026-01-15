@@ -1,7 +1,7 @@
 "use server";
 
 import { getSessionId } from "@/lib/session";
-import { addFavourite, getFavourites } from "@/lib/favourites";
+import { addFavourite, deleteFavourite, getFavourites } from "@/lib/favourites";
 import { FavouritePokemon } from "@/types/favourite";
 import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
 import { fetchPokemonByName, fetchPokemons } from "@/lib/pokemon";
@@ -28,7 +28,7 @@ export async function loadPokemons(
   offset: number = 0
 ): Promise<ApiResponse<PokemonList>> {
   try {
-    if (await isRateLimited({ maxRequests: 10 })) {
+    if (await isRateLimited()) {
       return rateLimitResponse;
     }
     const pokemonList = await fetchPokemons(POKEMON_SPECIES_LIMIT, offset);
@@ -57,7 +57,7 @@ export async function searchPokemonByName(
   name: string
 ): Promise<ApiResponse<PokemonDetails>> {
   try {
-    if (await isRateLimited({ maxRequests: 10 })) {
+    if (await isRateLimited()) {
       return rateLimitResponse;
     }
     const pokemon = await fetchPokemonByName(name);
@@ -86,7 +86,7 @@ export async function translatePokemonDescription(
   description: string
 ): Promise<ApiResponse<string>> {
   try {
-    if (await isRateLimited({ maxRequests: 10 })) {
+    if (await isRateLimited()) {
       return rateLimitResponse;
     }
     const translatedDescription = await fetchPokemonTranslation(description);
@@ -110,7 +110,7 @@ export async function addToFavourites(
 ): Promise<ApiResponse<FavouritePokemon>> {
   try {
     const userId = await getSessionId();
-    if (await isRateLimited({ maxRequests: 10 })) {
+    if (await isRateLimited()) {
       return rateLimitResponse;
     }
     const savedFavourite = await addFavourite(
@@ -140,7 +140,7 @@ export async function getAllFavourites(): Promise<
   ApiResponse<FavouritePokemon[] | null>
 > {
   try {
-    if (await isRateLimited({ maxRequests: 10 })) {
+    if (await isRateLimited()) {
       return rateLimitResponse;
     }
     const userId = await getSessionId();
@@ -154,6 +154,32 @@ export async function getAllFavourites(): Promise<
     return createErrorResponse(
       error,
       "An unknown error occurred while fetching favourites"
+    );
+  }
+}
+
+/**
+ *  Delete a Favourite Pokemon by its ID
+ */
+export async function deleteFavouriteById(
+  favouriteId: number
+): Promise<ApiResponse<null>> {
+  try {
+    if (await isRateLimited()) {
+      return rateLimitResponse;
+    }
+
+    const userId = await getSessionId();
+    await deleteFavourite(favouriteId, userId);
+
+    return {
+      success: true,
+      data: null,
+    };
+  } catch (error) {
+    return createErrorResponse(
+      error,
+      "An unknown error occurred while deleting the favourite"
     );
   }
 }
