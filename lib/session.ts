@@ -1,7 +1,6 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { randomUUID } from "crypto";
 import { env } from "./env";
 
 const SESSION_ID = "pokemon_user_id";
@@ -15,7 +14,7 @@ export async function getSessionId(): Promise<string> {
   let sessionId = cookieStore.get(SESSION_ID)?.value;
 
   if (!sessionId) {
-    sessionId = randomUUID();
+    sessionId = crypto.randomUUID();
     cookieStore.set(SESSION_ID, sessionId, {
       httpOnly: true,
       secure: env.NODE_ENV === "production",

@@ -3,6 +3,8 @@ import { FavouriteSection } from "@/components/FavouritesSection";
 import { PokemonSearch } from "@/components/PokemonSearch";
 import { fetchFavouritesForSession } from "@/lib/favourites";
 
+export const runtime = "edge";
+
 export default async function Home() {
   const favourites = await fetchFavouritesForSession();
 
@@ -11,7 +13,7 @@ export default async function Home() {
       <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 mt-20">
         Pokemon Shakespeare Web App
       </h1>
-      <Pokemons pokemons={{ results: [] }} />
+      <Pokemons />
       <FavouriteSection initialFavourites={favourites} />
       <PokemonSearch />
     </main>

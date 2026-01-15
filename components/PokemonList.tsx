@@ -7,7 +7,7 @@ import { LoadingButton } from "./LoadingButton";
 import { ErrorBlock } from "./ErrorBlock";
 
 interface PokemonListProps {
-  initialFavourites: PokemonList;
+  initialFavourites?: PokemonList;
 }
 
 /**
