@@ -126,6 +126,17 @@ export async function addToFavourites(
       data: savedFavourite,
     };
   } catch (error) {
+    // Check if it's a duplicate key constraint violation
+    if (
+      error instanceof Error &&
+      error.message.includes("duplicate key value")
+    ) {
+      return {
+        success: false,
+        error: "This Pokémon is already in your favourites",
+        status: 409, // Conflict status code
+      };
+    }
     return createErrorResponse(
       error,
       "An unknown error occurred while adding to favourites"

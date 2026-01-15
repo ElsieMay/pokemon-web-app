@@ -82,6 +82,39 @@ describe("Favourites Module", () => {
     ).rejects.toThrow("Invalid user ID format");
   });
 
+  // Test for duplicate insertion (should throw error from database constraint)
+  it("should throw an error when trying to add duplicate pokemon for same user", async () => {
+    mockIsUserIdValid.mockReturnValue();
+
+    // Simulate database constraint violation error
+    const constraintError = new Error(
+      'duplicate key value violates unique constraint "favourites_pokemon_id_user_id_key"'
+    );
+    mockQuery.mockRejectedValue(constraintError);
+
+    await expect(
+      addFavourite(
+        mockFavouritePokemon.pokemon_name,
+        mockFavouritePokemon.pokemon_id,
+        mockFavouritePokemon.shakespearean_description,
+        mockFavouritePokemon.original_description,
+        mockFavouritePokemon.user_id
+      )
+    ).rejects.toThrow("duplicate key value");
+
+    // Verify the query does NOT include ON CONFLICT clause
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.not.stringMatching(/ON CONFLICT/),
+      [
+        mockFavouritePokemon.pokemon_name,
+        mockFavouritePokemon.pokemon_id,
+        mockFavouritePokemon.user_id,
+        mockFavouritePokemon.shakespearean_description,
+        mockFavouritePokemon.original_description,
+      ]
+    );
+  });
+
   // Test for get favourites query
   it("should get favourites for a user", async () => {
     mockIsUserIdValid.mockReturnValue();

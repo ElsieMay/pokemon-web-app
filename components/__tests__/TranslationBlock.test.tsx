@@ -120,7 +120,7 @@ describe("tests for translated description block", () => {
     expect(resetButton).toBeInTheDocument();
   });
 
-  // Error Handling - failure case
+  // Error Handling - failure case for translation request
   it("should display an error message when translation fails and allow user to retry", async () => {
     mockTranslatePokemonDescription.mockResolvedValue({
       success: false,
@@ -327,6 +327,58 @@ describe("tests for translated description block", () => {
       expect(
         getByText("Translation service returned an empty description.")
       ).toBeInTheDocument();
+    });
+  });
+
+  // Error Handling - failure case for saving to favourites
+  it("should display an error message when saving to favourites fails and allow user to retry", async () => {
+    mockTranslatePokemonDescription.mockResolvedValue({
+      success: true,
+      data: ShakespeareTranslation,
+    });
+
+    mockAddToFavourites.mockResolvedValue({
+      success: false,
+      error: "Failed to save favourite",
+      status: 503,
+    });
+
+    const { getByText, getByRole, findByRole } = render(
+      <TranslationBlock pokemon={mockPokemonNameAndDescription} />
+    );
+
+    const translateButton = getByRole("button", { name: translateButtonText });
+    fireEvent.click(translateButton);
+
+    const saveButton = await findByRole("button", {
+      name: /Add to Favourites/i,
+    });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(
+        getByText("Error saving to favourites: Failed to save favourite")
+      ).toBeInTheDocument();
+    });
+
+    // Mock successful retry
+    mockAddToFavourites.mockResolvedValue({
+      success: true,
+      data: {
+        pokemon_name: mockPokemonNameAndDescription.name,
+        pokemon_id: mockPokemonNameAndDescription.id,
+        shakespearean_description: ShakespeareTranslation,
+        original_description: mockPokemonNameAndDescription.description,
+      },
+    });
+
+    const retryButton = getByRole("button", {
+      name: "Retry Save to Favourites",
+    });
+    fireEvent.click(retryButton);
+
+    await waitFor(() => {
+      expect(getByText("✓ Saved to Favourites!")).toBeInTheDocument();
     });
   });
 });

@@ -186,9 +186,14 @@ describe("PokemonCard", () => {
       ).toBeInTheDocument();
     });
 
-    it("should not call onDelete callback when not provided", async () => {
+    it("should show loading state when delete is in progress", async () => {
       const user = userEvent.setup();
-      (deleteFavouriteById as jest.Mock).mockResolvedValue({ success: true });
+      (deleteFavouriteById as jest.Mock).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(() => resolve({ success: true }), 100)
+          )
+      );
 
       render(<PokemonCard pokemon={mockPokemon} />);
 
@@ -196,6 +201,42 @@ describe("PokemonCard", () => {
         name: /delete from favourites/i,
       });
       await user.click(deleteButton);
+
+      expect(screen.getByText("Deleting...")).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(screen.getByText(/deleted successfully/i)).toBeInTheDocument();
+      });
+    });
+
+    it("should show retry button loading state", async () => {
+      const user = userEvent.setup();
+      (deleteFavouriteById as jest.Mock)
+        .mockResolvedValueOnce({ success: false })
+        .mockImplementation(
+          () =>
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ success: true }), 100)
+            )
+        );
+
+      render(<PokemonCard pokemon={mockPokemon} />);
+
+      const deleteButton = screen.getByRole("button", {
+        name: /delete from favourites/i,
+      });
+      await user.click(deleteButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/unable to delete "pikachu"/i)
+        ).toBeInTheDocument();
+      });
+
+      const retryButton = screen.getByRole("button", { name: /retry/i });
+      await user.click(retryButton);
+
+      expect(screen.getByText("Retrying...")).toBeInTheDocument();
 
       await waitFor(() => {
         expect(screen.getByText(/deleted successfully/i)).toBeInTheDocument();

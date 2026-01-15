@@ -20,6 +20,7 @@ export function TranslationBlock({
   const [isTranslated, setIsTranslated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [loadingSave, setLoadingSave] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -61,7 +62,6 @@ export function TranslationBlock({
 
   const savePokemonToFavourites = async () => {
     setLoadingSave(true);
-    setError(null);
 
     const favouritePokemon: FavouritePokemon = {
       pokemon_name: pokemon!.name,
@@ -72,11 +72,11 @@ export function TranslationBlock({
     const response = await addToFavourites(favouritePokemon);
 
     if (response.success) {
-      setError(null);
+      setSaveError(null);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } else {
-      setError(`Error saving to favourites: ` + response.error);
+      setSaveError(`Error saving to favourites: ` + response.error);
     }
 
     setLoadingSave(false);
@@ -123,21 +123,34 @@ export function TranslationBlock({
           )}
         </div>
       )}
-      {isTranslated && (
-        <div className="pb-2 flex flex-col items-center">
-          <h6 className="font-medium text-gray-900 dark:text-gray-100 capitalize pt-8">
-            Would you like to add this Pokemon to your favourites?
-          </h6>
+      {saveError ? (
+        <div className="w-full flex flex-col items-center">
+          <p className="mt-4 text-red-500">{saveError}</p>
           <button
-            className={`btn-primary transition-all duration-300 mt-4 ${
-              saved ? "bg-green-600 scale-105" : ""
-            }`}
+            className="btn-primary mt-6"
             onClick={() => savePokemonToFavourites()}
             disabled={loadingSave}
           >
-            {saved ? "✓ Saved to Favourites!" : "Add to Favourites"}
+            {loadingSave ? "Retrying..." : "Retry Save to Favourites"}
           </button>
         </div>
+      ) : (
+        isTranslated && (
+          <div className="pb-2 flex flex-col items-center">
+            <h6 className="font-medium text-gray-900 dark:text-gray-100 capitalize pt-8">
+              Would you like to add this Pokemon to your favourites?
+            </h6>
+            <button
+              className={`btn-primary transition-all duration-300 mt-4 ${
+                saved ? "bg-green-600 scale-105" : ""
+              }`}
+              onClick={() => savePokemonToFavourites()}
+              disabled={loadingSave}
+            >
+              {saved ? "✓ Saved to Favourites!" : "Add to Favourites"}
+            </button>
+          </div>
+        )
       )}
     </div>
   );

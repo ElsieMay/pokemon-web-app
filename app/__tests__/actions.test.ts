@@ -530,6 +530,40 @@ describe("add to favourites", () => {
       mockSessionId
     );
   });
+
+  // Test duplicate Pokemon handling
+  it("should return conflict error when trying to add duplicate Pokemon", async () => {
+    mockGetSessionId.mockResolvedValue(mockSessionId);
+    mockAddFavourite.mockRejectedValue(
+      new Error(
+        'duplicate key value violates unique constraint "favourites_pokemon_id_user_id_key"'
+      )
+    );
+
+    const sessionId = await getSessionId();
+    expect(sessionId).toBe(mockSessionId);
+
+    const response = await addToFavourites({
+      pokemon_name: mockFavouritePokemon.pokemon_name,
+      pokemon_id: mockFavouritePokemon.pokemon_id,
+      shakespearean_description: mockFavouritePokemon.shakespearean_description,
+      original_description: mockFavouritePokemon.original_description,
+    });
+
+    expect(mockGetSessionId).toHaveBeenCalled();
+    expect(mockAddFavourite).toHaveBeenCalledWith(
+      mockFavouritePokemon.pokemon_name,
+      mockFavouritePokemon.pokemon_id,
+      mockFavouritePokemon.shakespearean_description,
+      mockFavouritePokemon.original_description,
+      mockSessionId
+    );
+    expect(response).toEqual({
+      success: false,
+      error: "This Pokémon is already in your favourites",
+      status: 409,
+    });
+  });
 });
 
 describe("getAllFavourites", () => {

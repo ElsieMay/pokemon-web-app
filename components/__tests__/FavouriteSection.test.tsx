@@ -1,4 +1,4 @@
-import { getAllFavourites } from "@/app/actions";
+import { getAllFavourites, deleteFavouriteById } from "@/app/actions";
 import { initialFavourites } from "@/lib/__mocks__/sample";
 import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import { FavouriteSection } from "../FavouritesSection";
@@ -6,6 +6,9 @@ import { FavouriteSection } from "../FavouritesSection";
 jest.mock("@/app/actions");
 const mockGetFavourites = getAllFavourites as jest.MockedFunction<
   typeof getAllFavourites
+>;
+const mockDeleteFavourite = deleteFavouriteById as jest.MockedFunction<
+  typeof deleteFavouriteById
 >;
 
 describe("FavouriteSection", () => {
@@ -155,8 +158,10 @@ describe("FavouriteSection", () => {
   });
 
   it("should re-render and update list after deleting a favourite Pokémon", async () => {
-    const { deleteFavouriteById } = await import("@/app/actions");
-    (deleteFavouriteById as jest.Mock).mockResolvedValue({ success: true });
+    mockDeleteFavourite.mockResolvedValue({
+      success: true,
+      data: null,
+    });
 
     const { getByText } = render(
       <FavouriteSection pokemons={initialFavourites} />

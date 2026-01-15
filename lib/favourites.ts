@@ -28,10 +28,6 @@ export async function addFavourite(
   const result = await query<FavouritePokemon>(
     `INSERT INTO favourites (pokemon_name, pokemon_id, user_id, shakespearean_description, original_description)
      VALUES ($1, $2, $3, $4, $5)
-     ON CONFLICT (pokemon_id, user_id) DO UPDATE
-     SET pokemon_name = EXCLUDED.pokemon_name,
-         shakespearean_description = EXCLUDED.shakespearean_description,
-         original_description = EXCLUDED.original_description
      RETURNING id, pokemon_name, pokemon_id, user_id, created_at, shakespearean_description, original_description`,
     [
       validatedName,
