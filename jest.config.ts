@@ -1,6 +1,15 @@
 import type { Config } from "jest";
 import nextJest from "next/jest.js";
 
+process.env.JEST_WORKER_ID = "1";
+process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test_db";
+process.env.NEON_ORG_ID = "test_org";
+process.env.NEON_PROJECT_ID = "test_project";
+process.env.RATE_LIMIT_MAX = "10";
+process.env.RATE_LIMIT_WINDOW = "60000";
+process.env.DB_POOL_MAX = "5";
+process.env.DB_IDLE_TIMEOUT = "60000";
+
 const createJestConfig = nextJest({
   dir: "./",
 });

@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
+import { env } from "./env";
 
 const SESSION_ID = "pokemon_user_id";
 const MAX_AGE = 60 * 60 * 24 * 365; // 1 year max
@@ -17,7 +18,7 @@ export async function getSessionId(): Promise<string> {
     sessionId = randomUUID();
     cookieStore.set(SESSION_ID, sessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: MAX_AGE,
       path: "/",

@@ -7,10 +7,12 @@ import { ErrorBlock } from "./ErrorBlock";
 
 interface TranslationBlockProps {
   pokemon: PokemonDetails;
+  onSaveSuccess?: () => void;
 }
 
 export function TranslationBlock({
   pokemon: pokemonDescription,
+  onSaveSuccess,
 }: TranslationBlockProps) {
   // State to manage Pokemon description and translation status
   const [pokemon, setPokemonData] =
@@ -47,7 +49,7 @@ export function TranslationBlock({
       });
       setIsTranslated(true);
     } else {
-      setError(`Error fetching translation: ` + response.error);
+      setError(`Unable to translate description. Please try again later.`);
     }
 
     setLoading(false);
@@ -77,8 +79,15 @@ export function TranslationBlock({
       setSaveError(null);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+
+      if (onSaveSuccess) {
+        onSaveSuccess();
+      }
     } else {
-      setSaveError(`Error saving to favourites: ` + response.error);
+      setSaveError(
+        `Unable to save to favourites. Please try again later or check if it's already saved.`
+      );
+      setLoadingSave(false);
     }
 
     setLoadingSave(false);

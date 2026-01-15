@@ -1,19 +1,34 @@
+"use client";
+
 import { FavouriteSection } from "@/components/FavouritesSection";
 import { Pokemons } from "@/components/PokemonList";
 import { PokemonSearch } from "@/components/PokemonSearch";
-import { getAllFavourites } from "@/app/actions";
+import { useEffect, useState } from "react";
+import { FavouritePokemon } from "@/types/favourite";
+import { getAllFavourites } from "./actions";
 
-/**
- * Home page component for the Pokemon Shakespeare Web App.
- * @returns The rendered home page
- */
+export default function Home() {
+  const [favourites, setFavourites] = useState<FavouritePokemon[]>([]);
 
-export default async function Home() {
-  const favouritesResponse = await getAllFavourites();
-  const favourites =
-    favouritesResponse.success && favouritesResponse.data
-      ? favouritesResponse.data
-      : [];
+  const loadFavourites = async () => {
+    const response = await getAllFavourites();
+    if (response.success && response.data) {
+      setFavourites(response.data);
+    } else {
+      setFavourites([]);
+    }
+  };
+
+  useEffect(() => {
+    loadFavourites();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSaveSuccess = () => {
+    setTimeout(() => {
+      loadFavourites();
+    }, 2000);
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-900">
@@ -21,8 +36,8 @@ export default async function Home() {
         Pokemon Shakespeare Web App
       </h1>
       <Pokemons pokemons={{ results: [] }} />
-      <FavouriteSection pokemons={favourites} />
-      <PokemonSearch />
+      <FavouriteSection pokemons={favourites} onRefresh={loadFavourites} />
+      <PokemonSearch onSaveSuccess={handleSaveSuccess} />
     </main>
   );
 }

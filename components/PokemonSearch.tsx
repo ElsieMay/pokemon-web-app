@@ -9,6 +9,7 @@ import { ErrorBlock } from "./ErrorBlock";
 
 interface PokemonSearchProps {
   name?: string;
+  onSaveSuccess?: () => void;
 }
 
 /**
@@ -22,7 +23,7 @@ interface PokemonSearchProps {
  * <PokemonSearch name="Pikachu" />
  * ```
  */
-export function PokemonSearch({ name }: PokemonSearchProps) {
+export function PokemonSearch({ name, onSaveSuccess }: PokemonSearchProps) {
   const [pokemon, setPokemon] = useState(name || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +49,19 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
       setPokemonData(null);
     }
     setLoading(false);
+  };
+
+  const resetSearch = () => {
+    setPokemon("");
+    setPokemonData(null);
+    setError(null);
+  };
+
+  const handleSaveSuccess = () => {
+    resetSearch();
+    if (onSaveSuccess) {
+      onSaveSuccess();
+    }
   };
 
   return (
@@ -85,7 +99,11 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
               Search for Pokemon
             </LoadingButton>
             {pokemonData && (
-              <TranslationBlock key={pokemonData.id} pokemon={pokemonData} />
+              <TranslationBlock
+                key={pokemonData.id}
+                pokemon={pokemonData}
+                onSaveSuccess={handleSaveSuccess}
+              />
             )}
           </div>
         )}

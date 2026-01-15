@@ -1,36 +1,53 @@
 import { Pool } from "@neondatabase/serverless";
+import { env } from "./env";
 
-/**
- * Get a Neon database connection
- * Uses the DATABASE_URL environment variable
- */
 let pool: Pool | null = null;
 
-export function getNeonPool() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL environment variable is not set");
-  }
-
+export function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 5,
-      idleTimeoutMillis: 60000,
+      connectionString: env.DATABASE_URL,
+      max: 1,
+      idleTimeoutMillis: env.DB_IDLE_TIMEOUT,
       connectionTimeoutMillis: 10000,
     });
   }
-
   return pool;
 }
 
-/**
- * Execute a SQL query
- */
 export async function query<T = unknown>(
   sql: string,
   params: unknown[] = []
 ): Promise<T[]> {
-  const pool = getNeonPool();
-  const result = await pool.query(sql, params);
-  return result.rows as T[];
+  let attempts = 0;
+  const maxAttempts = 2;
+
+  while (attempts < maxAttempts) {
+    try {
+      const client = await getPool().connect();
+      try {
+        const result = await client.query(sql, params);
+        return result.rows as T[];
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      attempts++;
+      if (attempts < maxAttempts) {
+        // Reset pool on connection failure
+        pool = null;
+        await new Promise((r) => setTimeout(r, 100 * attempts));
+      } else {
+        if (env.NODE_ENV === "development") {
+          console.error("DB query failed after retries:", {
+            message: error instanceof Error ? error.message : "Unknown error",
+            attempts: maxAttempts,
+          });
+        }
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Unreachable");
 }

@@ -10,51 +10,49 @@ export const requestCounts = new Map<
   string,
   { count: number; resetAt: number }
 >();
-interface RateLimitConfig {
-  windowMs?: number;
-  maxRequests?: number;
-}
 
 /**
- *
- * Checks if the incoming request is rate limited based on IP address.
- * @param config - Rate limit configuration
- * @returns true if rate limited, false otherwise
- *
- * @example
- * ```ts
- * const limited = await isRateLimited({ windowMs: 60000, maxRequests: 10 });
- * if (limited) {
- *   return rateLimitResponse;
- * }
- * ```
+ * Simple in-memory rate limiter
  */
-export async function isRateLimited(
-  config: RateLimitConfig = {}
-): Promise<boolean> {
-  const WINDOW_MS = config.windowMs ?? 60 * 1000;
-  const MAX_REQUESTS = config.maxRequests ?? 10;
+const requestLog = new Map<string, number[]>();
+
+export async function isRateLimited(options?: {
+  maxRequests?: number;
+  windowMs?: number;
+}): Promise<boolean> {
+  const { env } = await import("./env");
+
+  const maxRequests = options?.maxRequests ?? env.RATE_LIMIT_MAX;
+  const windowMs = options?.windowMs ?? env.RATE_LIMIT_WINDOW;
 
   const headersList = await headers();
   const ip =
     headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1";
 
   const now = Date.now();
-  const key = `rate_limit:${ip}`;
+  const windowStart = now - windowMs;
+  const requests = requestLog.get(ip) || [];
+  const recentRequests = requests.filter((time) => time > windowStart);
 
-  // Lazy cleanup on every request (serverless safe)
-  for (const [k, record] of requestCounts.entries()) {
-    if (record.resetAt < now) requestCounts.delete(k);
+  if (recentRequests.length >= maxRequests) {
+    return true;
   }
 
-  const record = requestCounts.get(key);
-  if (!record || record.resetAt < now) {
-    requestCounts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return false;
+  recentRequests.push(now);
+  requestLog.set(ip, recentRequests);
+
+  // Cleanup old entries periodically
+  if (Math.random() < 0.01) {
+    for (const [key, times] of requestLog.entries()) {
+      const recent = times.filter((t) => t > windowStart);
+      if (recent.length === 0) {
+        requestLog.delete(key);
+      } else {
+        requestLog.set(key, recent);
+      }
+    }
   }
 
-  if (record.count >= MAX_REQUESTS) return true;
-  record.count++;
   return false;
 }
 

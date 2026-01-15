@@ -7,6 +7,24 @@ const mockSearchPokemonByName = searchPokemonByName as jest.MockedFunction<
   typeof searchPokemonByName
 >;
 
+// Mock TranslationBlock to capture and trigger onSaveSuccess
+jest.mock("../TranslationBlock", () => ({
+  TranslationBlock: ({
+    pokemon,
+    onSaveSuccess,
+  }: {
+    pokemon: { name: string; description: string; id: number };
+    onSaveSuccess?: () => void;
+  }) => (
+    <div>
+      <div data-testid="translation-block">{pokemon.name}</div>
+      <button onClick={onSaveSuccess} data-testid="trigger-save">
+        Trigger Save Success
+      </button>
+    </div>
+  ),
+}));
+
 describe("Pokemon Search by Name Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -16,6 +34,8 @@ describe("Pokemon Search by Name Component", () => {
 
   // Basic Rendering and Search Functionality - success case
   it("should call searchPokemonByName when search button is clicked", async () => {
+    const mockOnSaveSuccess = jest.fn();
+
     mockSearchPokemonByName.mockResolvedValue({
       success: true,
       data: {
@@ -25,8 +45,8 @@ describe("Pokemon Search by Name Component", () => {
       },
     });
 
-    const { getByLabelText, getByText } = render(
-      <PokemonSearch name={pokemonName} />
+    const { getByLabelText, getByText, getByTestId } = render(
+      <PokemonSearch name={pokemonName} onSaveSuccess={mockOnSaveSuccess} />
     );
 
     const input = getByLabelText("Pokemon Name") as HTMLInputElement;
@@ -47,6 +67,15 @@ describe("Pokemon Search by Name Component", () => {
 
     await waitFor(() => {
       expect(button).toHaveTextContent("Search for Pokemon");
+    });
+
+    // Test handleSaveSuccess callback
+    const triggerSaveButton = getByTestId("trigger-save");
+    fireEvent.click(triggerSaveButton);
+
+    await waitFor(() => {
+      expect(input.value).toBe("");
+      expect(mockOnSaveSuccess).toHaveBeenCalledTimes(1);
     });
   });
 

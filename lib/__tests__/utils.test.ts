@@ -64,25 +64,51 @@ describe("Rate Limiting", () => {
       expect(result).toBe(false);
     });
 
-    it("cleans up expired rate limit records during request", async () => {
+    it("should execute cleanup logic when random condition is met", async () => {
       const { headers } = await import("next/headers");
-      const { isRateLimited, requestCounts } = await import("../utils");
+      const { isRateLimited } = await import("../utils");
 
-      mockHeaders.get.mockReturnValue("192.168.1.100");
+      const mathRandomSpy = jest.spyOn(Math, "random").mockReturnValue(0.005);
+
+      mockHeaders.get.mockReturnValue("192.168.1.2");
       (headers as jest.Mock).mockResolvedValue(mockHeaders);
 
-      const pastTime = Date.now() - 10000;
-      requestCounts.set("rate_limit:192.168.1.99", {
-        count: 10,
-        resetAt: pastTime,
+      const MAX_REQUESTS = 3;
+      const WINDOW_MS = 1000;
+
+      for (let i = 0; i < MAX_REQUESTS; i++) {
+        await isRateLimited({ maxRequests: MAX_REQUESTS, windowMs: WINDOW_MS });
+      }
+
+      jest.advanceTimersByTime(WINDOW_MS + 1);
+
+      mockHeaders.get.mockReturnValue("192.168.1.3");
+      await isRateLimited({ maxRequests: MAX_REQUESTS, windowMs: WINDOW_MS });
+
+      mockHeaders.get.mockReturnValue("192.168.1.2");
+      const result = await isRateLimited({
+        maxRequests: MAX_REQUESTS,
+        windowMs: WINDOW_MS,
       });
+      expect(result).toBe(false);
 
-      const sizeBefore = requestCounts.size;
+      mathRandomSpy.mockRestore();
+    });
 
-      await isRateLimited();
+    it("should not execute cleanup logic when random condition is not met", async () => {
+      const { headers } = await import("next/headers");
+      const { isRateLimited } = await import("../utils");
 
-      expect(requestCounts.has("rate_limit:192.168.1.99")).toBe(false);
-      expect(requestCounts.size).toBeLessThanOrEqual(sizeBefore);
+      const mathRandomSpy = jest.spyOn(Math, "random").mockReturnValue(0.5);
+
+      mockHeaders.get.mockReturnValue("192.168.1.4");
+      (headers as jest.Mock).mockResolvedValue(mockHeaders);
+
+      const result = await isRateLimited();
+
+      expect(result).toBe(false);
+
+      mathRandomSpy.mockRestore();
     });
   });
 

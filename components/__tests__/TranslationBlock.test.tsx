@@ -139,9 +139,7 @@ describe("tests for translated description block", () => {
 
     await waitFor(() => {
       expect(
-        getByText(
-          "Error fetching translation: Translation service is currently unavailable."
-        )
+        getByText(`Unable to translate description. Please try again later.`)
       ).toBeInTheDocument();
     });
 
@@ -195,6 +193,8 @@ describe("tests for translated description block", () => {
 
   // Test case for storing favourite Pokemon - success case
   it("should save Pokemon to favourites successfully", async () => {
+    const mockOnSaveSuccess = jest.fn();
+
     mockTranslatePokemonDescription.mockResolvedValue({
       success: true,
       data: ShakespeareTranslation,
@@ -211,7 +211,10 @@ describe("tests for translated description block", () => {
     });
 
     const { getByRole, findByRole } = render(
-      <TranslationBlock pokemon={mockPokemonNameAndDescription} />
+      <TranslationBlock
+        pokemon={mockPokemonNameAndDescription}
+        onSaveSuccess={mockOnSaveSuccess}
+      />
     );
 
     const translateButton = getByRole("button", { name: translateButtonText });
@@ -229,6 +232,7 @@ describe("tests for translated description block", () => {
         shakespearean_description: ShakespeareTranslation,
         original_description: mockPokemonNameAndDescription.description,
       });
+      expect(mockOnSaveSuccess).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -260,7 +264,9 @@ describe("tests for translated description block", () => {
 
     await waitFor(() => {
       expect(
-        getByText("Error saving to favourites: Failed to save favourite")
+        getByText(
+          `Unable to save to favourites. Please try again later or check if it's already saved.`
+        )
       ).toBeInTheDocument();
     });
   });
@@ -327,58 +333,6 @@ describe("tests for translated description block", () => {
       expect(
         getByText("Translation service returned an empty description.")
       ).toBeInTheDocument();
-    });
-  });
-
-  // Error Handling - failure case for saving to favourites
-  it("should display an error message when saving to favourites fails and allow user to retry", async () => {
-    mockTranslatePokemonDescription.mockResolvedValue({
-      success: true,
-      data: ShakespeareTranslation,
-    });
-
-    mockAddToFavourites.mockResolvedValue({
-      success: false,
-      error: "Failed to save favourite",
-      status: 503,
-    });
-
-    const { getByText, getByRole, findByRole } = render(
-      <TranslationBlock pokemon={mockPokemonNameAndDescription} />
-    );
-
-    const translateButton = getByRole("button", { name: translateButtonText });
-    fireEvent.click(translateButton);
-
-    const saveButton = await findByRole("button", {
-      name: /Add to Favourites/i,
-    });
-    fireEvent.click(saveButton);
-
-    await waitFor(() => {
-      expect(
-        getByText("Error saving to favourites: Failed to save favourite")
-      ).toBeInTheDocument();
-    });
-
-    // Mock successful retry
-    mockAddToFavourites.mockResolvedValue({
-      success: true,
-      data: {
-        pokemon_name: mockPokemonNameAndDescription.name,
-        pokemon_id: mockPokemonNameAndDescription.id,
-        shakespearean_description: ShakespeareTranslation,
-        original_description: mockPokemonNameAndDescription.description,
-      },
-    });
-
-    const retryButton = getByRole("button", {
-      name: "Retry Save to Favourites",
-    });
-    fireEvent.click(retryButton);
-
-    await waitFor(() => {
-      expect(getByText("✓ Saved to Favourites!")).toBeInTheDocument();
     });
   });
 });

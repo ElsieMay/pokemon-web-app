@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllFavourites } from "@/app/actions";
 import { PokemonCard } from "./PokemonCard";
 import { FavouritePokemon } from "@/types/favourite";
@@ -9,6 +9,7 @@ import { ErrorBlock } from "./ErrorBlock";
 
 interface FavouriteSectionProps {
   pokemons: FavouritePokemon[];
+  onRefresh?: () => void;
 }
 
 /**
@@ -26,6 +27,10 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
   const [pokemonList, setPokemonList] = useState(pokemons);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPokemonList(pokemons);
+  }, [pokemons]);
 
   /**
    * Fetches favourite Pokemons and appends them to the current list.

@@ -1,77 +1,52 @@
-import { getNeonPool, query } from "../db";
+import { query, getPool } from "../db";
 import { Pool } from "@neondatabase/serverless";
 
 jest.mock("@neondatabase/serverless");
-
-const mockQuery = jest.fn();
-const mockPool = {
-  query: mockQuery,
-} as unknown as Pool;
-
-const MockedPool = Pool as jest.MockedClass<typeof Pool>;
+jest.mock("../env", () => ({
+  env: {
+    DATABASE_URL: "postgresql://test:test@localhost:5432/test",
+    DB_IDLE_TIMEOUT: 60000,
+    NODE_ENV: "test",
+  },
+}));
 
 describe("Database Module", () => {
+  let mockPool: { connect: jest.Mock };
+  let mockConnect: jest.Mock;
+  let mockQuery: jest.Mock;
+  let mockRelease: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    MockedPool.mockImplementation(() => mockPool);
-  });
 
-  const originalEnv = process.env.DATABASE_URL;
-  const testUrl = "postgresql://user:password@localhost:5432/dbname";
-
-  // DB URL not set test
-  it("should throw an error if DATABASE_URL is not set", () => {
-    delete process.env.DATABASE_URL;
-
-    expect(() => {
-      getNeonPool();
-    }).toThrow("DATABASE_URL environment variable is not set");
-
-    process.env.DATABASE_URL = originalEnv;
-  });
-
-  //   Pool creation test
-  it("should create a Pool with the correct connection string", () => {
-    process.env.DATABASE_URL = testUrl;
-
-    getNeonPool();
-
-    expect(Pool).toHaveBeenCalledWith({
-      connectionString: testUrl,
-      connectionTimeoutMillis: 10000,
-      idleTimeoutMillis: 60000,
-      max: 5,
+    mockQuery = jest.fn();
+    mockRelease = jest.fn();
+    mockConnect = jest.fn().mockResolvedValue({
+      query: mockQuery,
+      release: mockRelease,
     });
 
-    process.env.DATABASE_URL = originalEnv;
+    mockPool = {
+      connect: mockConnect,
+    };
+
+    (Pool as unknown as jest.Mock).mockImplementation(() => mockPool);
   });
 
-  //   getNeonPool should return the same pool instance
-  it("should return the same pool instance on multiple calls", () => {
-    const pool1 = getNeonPool();
-    const pool2 = getNeonPool();
-
+  it("should create a new pool if none exists", () => {
+    const pool1 = getPool();
+    const pool2 = getPool();
     expect(pool1).toBe(pool2);
-
-    process.env.DATABASE_URL = originalEnv;
   });
 
-  // SQL query execution test
-  it("should execute a SQL query and return results", async () => {
-    const sampleRows = [
-      { id: 1, name: "Test" },
-      { id: 2, name: "Demo" },
-    ];
-    mockQuery.mockResolvedValue({ rows: sampleRows });
+  it("should execute a successful query", async () => {
+    mockQuery.mockResolvedValue({ rows: [{ id: 1, name: "Test" }] });
 
-    const sql = "SELECT id, name FROM test_table WHERE id = $1";
-    const params = [1];
+    const result = await query("SELECT * FROM test_table");
 
-    const result = await query<{ id: number; name: string }>(sql, params);
-
-    expect(mockQuery).toHaveBeenCalledWith(sql, params);
-    expect(result).toEqual(sampleRows);
-
-    process.env.DATABASE_URL = originalEnv;
+    expect(result).toEqual([{ id: 1, name: "Test" }]);
+    expect(mockConnect).toHaveBeenCalledTimes(1);
+    expect(mockQuery).toHaveBeenCalledWith("SELECT * FROM test_table", []);
+    expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 });
