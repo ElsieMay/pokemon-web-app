@@ -40,12 +40,11 @@ export async function fetchPokemonTranslation(description: string) {
     const data = await response.json();
     return data.contents.translated;
   } catch (error) {
-    if (error instanceof TranslationFetchError) {
-      throw error;
-    } else if (error instanceof Error) {
-      throw new TranslationFetchError(error.message, 500);
-    } else {
-      throw new TranslationFetchError("An unknown error occurred", 500);
-    }
+    if (error instanceof TranslationFetchError) throw error;
+    throw new TranslationFetchError(
+      error instanceof Error ? error.message : "Unknown error",
+      500,
+      { cause: error }
+    );
   }
 }

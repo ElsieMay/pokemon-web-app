@@ -12,10 +12,8 @@ import { PokemonFetchError } from "@/types/error";
  *
  * @example
  * ```ts
- * // Fetch first 20 Pokemon
  * const pokemon = await fetchPokemons(20, 0);
  *
- * // Fetch next 20 Pokemon
  * const morePokemon = await fetchPokemons(20, 20);
  * ```
  */
@@ -36,13 +34,12 @@ export async function fetchPokemons(limit: number = 20, offset: number = 0) {
     const data = await response.json();
     return PokemonListSchema.parse(data).results;
   } catch (error) {
-    if (error instanceof PokemonFetchError) {
-      throw error;
-    } else if (error instanceof Error) {
-      throw new PokemonFetchError(error.message, 500);
-    } else {
-      throw new PokemonFetchError("An unknown error occurred", 500);
-    }
+    if (error instanceof PokemonFetchError) throw error;
+    throw new PokemonFetchError(
+      error instanceof Error ? error.message : "Unknown error",
+      500,
+      { cause: error }
+    );
   }
 }
 
@@ -55,7 +52,6 @@ export async function fetchPokemons(limit: number = 20, offset: number = 0) {
  *
  * @example
  * ```ts
- * // Fetch Pokemon species by name
  * const bulbasaur = await fetchPokemonByName("bulbasaur");
  * ```
  */
@@ -74,7 +70,6 @@ export async function fetchPokemonByName(name: string) {
       );
     }
     const data = await response.json();
-    // Extract name and flavor text entries from the API response
     const validated = PokemonSchema.parse(data);
     return {
       name: validated.name,
@@ -82,12 +77,11 @@ export async function fetchPokemonByName(name: string) {
       id: validated.id,
     };
   } catch (error) {
-    if (error instanceof PokemonFetchError) {
-      throw error;
-    } else if (error instanceof Error) {
-      throw new PokemonFetchError(error.message, 500);
-    } else {
-      throw new PokemonFetchError("An unknown error occurred", 500);
-    }
+    if (error instanceof PokemonFetchError) throw error;
+    throw new PokemonFetchError(
+      error instanceof Error ? error.message : "Unknown error",
+      500,
+      { cause: error }
+    );
   }
 }

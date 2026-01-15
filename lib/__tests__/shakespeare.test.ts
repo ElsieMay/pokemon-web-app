@@ -81,7 +81,7 @@ describe("fetch Shakespeare translation", () => {
 
     expect(thrownError).toBeInstanceOf(TranslationFetchError);
     expect(thrownError).toMatchObject({
-      message: "An unknown error occurred",
+      message: "Unknown error",
       status: 500,
     });
 

@@ -6,12 +6,8 @@
  * ```
  */
 export class PokemonFetchError extends Error {
-  /**
-   * @param message - Error message
-   * @param status - HTTP status code
-   */
-  constructor(message: string, public status: number) {
-    super(message);
+  constructor(message: string, public status: number, options?: ErrorOptions) {
+    super(message, options);
     this.name = "PokemonFetchError";
   }
 }
@@ -24,12 +20,8 @@ export class PokemonFetchError extends Error {
  * ```
  */
 export class TranslationFetchError extends Error {
-  /**
-   * @param message - Error message
-   * @param status - HTTP status code
-   */
-  constructor(message: string, public status: number) {
-    super(message);
+  constructor(message: string, public status: number, options?: ErrorOptions) {
+    super(message, options);
     this.name = "TranslationFetchError";
   }
 }
@@ -42,12 +34,8 @@ export class TranslationFetchError extends Error {
  * ```
  */
 export class FavouriteStoreError extends Error {
-  /**
-   * @param message - Error message
-   * @param status - HTTP status code
-   */
-  constructor(message: string, public status: number) {
-    super(message);
+  constructor(message: string, public status: number, options?: ErrorOptions) {
+    super(message, options);
     this.name = "FavouriteStoreError";
   }
 }

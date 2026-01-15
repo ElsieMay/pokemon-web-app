@@ -129,7 +129,6 @@ export async function addToFavourites(
       data: savedFavourite,
     };
   } catch (error) {
-    // Check if it's a duplicate key constraint violation
     if (
       error instanceof Error &&
       error.message.includes("duplicate key value")
@@ -137,7 +136,7 @@ export async function addToFavourites(
       return {
         success: false,
         error: "This Pokémon is already in your favourites",
-        status: 409, // Conflict status code
+        status: 409,
       };
     }
     return createErrorResponse(

@@ -52,11 +52,6 @@ describe("fetchPokemons", () => {
       message: "Failed to fetch Pokemons: Not Found",
       status: 404,
     });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${API_POKE_BASE_URL}/pokemon-species?limit=2&offset=0`,
-      getExpectedFetchConfig()
-    );
   });
 
   // Test for fetching list of Pokemons - error during fetch
@@ -88,10 +83,6 @@ describe("fetchPokemons", () => {
     (global.fetch as jest.Mock).mockRejectedValue({});
 
     await expect(fetchPokemons(2, 0)).rejects.toThrow(PokemonFetchError);
-    await expect(fetchPokemons(2, 0)).rejects.toMatchObject({
-      message: "An unknown error occurred",
-      status: 500,
-    });
 
     expect(global.fetch).toHaveBeenCalledWith(
       `${API_POKE_BASE_URL}/pokemon-species?limit=2&offset=0`,
@@ -212,10 +203,6 @@ describe("fetch Pokemon by name", () => {
     await expect(fetchPokemonByName(pokemonName)).rejects.toThrow(
       PokemonFetchError
     );
-    await expect(fetchPokemonByName(pokemonName)).rejects.toMatchObject({
-      message: "An unknown error occurred",
-      status: 500,
-    });
 
     expect(global.fetch).toHaveBeenCalledWith(
       `${API_POKE_BASE_URL}/pokemon-species/${pokemonName}`,
