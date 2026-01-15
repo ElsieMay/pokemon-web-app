@@ -2,6 +2,8 @@ import { addToFavourites, translatePokemonDescription } from "@/app/actions";
 import { FavouritePokemon } from "@/types/favourite";
 import { PokemonDetails } from "@/types/pokemon";
 import { useState } from "react";
+import { LoadingButton } from "./LoadingButton";
+import { ErrorBlock } from "./ErrorBlock";
 
 interface TranslationBlockProps {
   pokemon: PokemonDetails;
@@ -91,26 +93,22 @@ export function TranslationBlock({
         {pokemon?.description || "No description available."}
       </p>
       {error ? (
-        <div className="w-full flex flex-col items-center">
-          <p className="mt-4 text-red-500">{error}</p>
-          <button
-            className="btn-primary mt-6"
-            onClick={() => fetchShakespeareTranslation()}
-            disabled={loading}
-          >
-            {loading ? "Retrying..." : "Retry Search"}
-          </button>
-        </div>
+        <ErrorBlock
+          error={error}
+          onRetry={() => fetchShakespeareTranslation()}
+          loading={loading}
+          retryText="Retry Search"
+        />
       ) : (
         <div className="w-full flex flex-col items-center gap-2">
           {!isTranslated ? (
-            <button
+            <LoadingButton
               className="btn-primary mt-6"
               onClick={() => fetchShakespeareTranslation()}
-              disabled={loading}
+              loading={loading}
             >
-              {loading ? "Loading..." : "Translate to Shakespearean English"}
-            </button>
+              Translate to Shakespearean English
+            </LoadingButton>
           ) : (
             <div>
               <button
@@ -124,31 +122,27 @@ export function TranslationBlock({
         </div>
       )}
       {saveError ? (
-        <div className="w-full flex flex-col items-center">
-          <p className="mt-4 text-red-500">{saveError}</p>
-          <button
-            className="btn-primary mt-6"
-            onClick={() => savePokemonToFavourites()}
-            disabled={loadingSave}
-          >
-            {loadingSave ? "Retrying..." : "Retry Save to Favourites"}
-          </button>
-        </div>
+        <ErrorBlock
+          error={saveError}
+          onRetry={() => savePokemonToFavourites()}
+          loading={loadingSave}
+          retryText="Retry Save to Favourites"
+        />
       ) : (
         isTranslated && (
           <div className="pb-2 flex flex-col items-center">
             <h6 className="font-medium text-gray-900 dark:text-gray-100 capitalize pt-8">
               Would you like to add this Pokemon to your favourites?
             </h6>
-            <button
+            <LoadingButton
               className={`btn-primary transition-all duration-300 mt-4 ${
                 saved ? "bg-green-600 scale-105" : ""
               }`}
               onClick={() => savePokemonToFavourites()}
-              disabled={loadingSave}
+              loading={loadingSave}
             >
               {saved ? "✓ Saved to Favourites!" : "Add to Favourites"}
-            </button>
+            </LoadingButton>
           </div>
         )
       )}

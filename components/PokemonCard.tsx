@@ -1,6 +1,7 @@
 import { deleteFavouriteById } from "@/app/actions";
 import { FavouritePokemon } from "@/types/favourite";
 import { useState } from "react";
+import { LoadingButton } from "./LoadingButton";
 
 interface PokemonCardProps {
   /** Pokemon data from the favourites table */
@@ -91,17 +92,18 @@ export function PokemonCard({ pokemon, onDelete }: PokemonCardProps) {
           <div className="flex flex-wrap gap-4 justify-between items-center">
             <p className="mt-4 text-red-500 pb-4">{error}</p>
             <div className="flex gap-2">
-              <button
+              <LoadingButton
                 onClick={() => handleDelete()}
-                disabled={loading}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                loading={loading}
+                loadingText="Retrying..."
+                className="btn-delete"
               >
-                {loading ? "Retrying..." : "Retry"}
-              </button>
+                Retry
+              </LoadingButton>
               <button
                 onClick={() => setError(null)}
                 disabled={loading}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 disabled:cursor-not-allowed text-gray-800 dark:text-white text-sm font-medium rounded-md transition-colors duration-200"
+                className="btn-secondary"
               >
                 Cancel
               </button>
@@ -115,13 +117,14 @@ export function PokemonCard({ pokemon, onDelete }: PokemonCardProps) {
                 <span>{formatDate(pokemon.created_at)}</span>
               </div>
             )}
-            <button
+            <LoadingButton
               onClick={() => handleDelete()}
-              disabled={loading}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              loading={loading}
+              loadingText="Deleting..."
+              className="btn-delete"
             >
-              {loading ? "Deleting..." : "Delete from Favourites"}
-            </button>
+              Delete from Favourites
+            </LoadingButton>
           </div>
         )}
       </div>

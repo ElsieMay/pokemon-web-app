@@ -50,6 +50,17 @@ describe("Pokemon Search by Name Component", () => {
     });
   });
 
+  // Test rendering without initial name prop
+  it("should render with empty input when name prop is not provided", () => {
+    const { getByLabelText, getByText } = render(<PokemonSearch />);
+
+    const input = getByLabelText("Pokemon Name") as HTMLInputElement;
+    const button = getByText("Search for Pokemon");
+
+    expect(input.value).toBe("");
+    expect(button).toBeDisabled();
+  });
+
   // Error Handling - failure case
   it("should display an error message when search fails", async () => {
     mockSearchPokemonByName.mockResolvedValue({

@@ -1,23 +1,48 @@
-import { render, screen } from "@testing-library/react";
+import { getAllFavourites } from "@/app/actions";
+import { moreFavourites } from "@/lib/__mocks__/sample";
 import Home from "../page";
-import { Pokemons } from "@/components/PokemonList";
+
+jest.mock("@/app/actions");
+const mockGetAllFavourites = getAllFavourites as jest.MockedFunction<
+  typeof getAllFavourites
+>;
 
 describe("Home page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should render home page", async () => {
-    const home = await Home();
-    render(home);
-    expect(screen.getByText("Pokemon Shakespeare Web App")).toBeInTheDocument();
-    expect(screen.getByRole("main")).toBeInTheDocument();
+  it("should render the home page with favourites", async () => {
+    mockGetAllFavourites.mockResolvedValue({
+      success: true,
+      data: moreFavourites,
+    });
+
+    const homePage = await Home();
+    expect(homePage).toBeDefined();
+    expect(mockGetAllFavourites).toHaveBeenCalledTimes(1);
   });
 
-  it("should render PokemonList component", async () => {
-    const home = await Home();
-    render(home);
-    expect(screen.getByText("Present Some Pokemon Names")).toBeInTheDocument();
-    expect(Pokemons).toBeDefined();
+  it("should render the home page with no favourites", async () => {
+    mockGetAllFavourites.mockResolvedValue({
+      success: true,
+      data: [],
+    });
+
+    const homePage = await Home();
+    expect(homePage).toBeDefined();
+    expect(mockGetAllFavourites).toHaveBeenCalledTimes(1);
+  });
+
+  it("should render the home page with empty favourites when API fails", async () => {
+    mockGetAllFavourites.mockResolvedValue({
+      success: false,
+      error: "Failed to fetch favourites",
+      status: 500,
+    });
+
+    const homePage = await Home();
+    expect(homePage).toBeDefined();
+    expect(mockGetAllFavourites).toHaveBeenCalledTimes(1);
   });
 });

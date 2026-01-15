@@ -34,10 +34,8 @@ export type FlavorTextEntry = z.infer<typeof FlavorTextEntrySchema>;
 /**
  * Zod schema for validating Pokemon data from the API.
  *
- * @todo Add additional fields like id, url, sprites, etc.
  */
 export const PokemonSchema = z.object({
-  // TODO: Add additional fields
   name: z.string(),
   flavor_text_entries: z.array(FlavorTextEntrySchema).nullable().optional(),
   id: z.number(),

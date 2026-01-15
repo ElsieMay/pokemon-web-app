@@ -10,8 +10,7 @@ const mockQuery = query as jest.MockedFunction<typeof query>;
 jest.mock("@/lib/utils", () => ({
   ...jest.requireActual("@/lib/utils"),
   validateUserId: jest.fn(),
-  validatePokemonName: jest.fn((name) => name),
-  validateDescription: jest.fn((desc) => desc),
+  validateText: jest.fn((name) => name),
 }));
 const mockIsUserIdValid = validateUserId as jest.MockedFunction<
   typeof validateUserId

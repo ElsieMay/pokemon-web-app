@@ -4,6 +4,8 @@ import { useState } from "react";
 import { getAllFavourites } from "@/app/actions";
 import { PokemonCard } from "./PokemonCard";
 import { FavouritePokemon } from "@/types/favourite";
+import { LoadingButton } from "./LoadingButton";
+import { ErrorBlock } from "./ErrorBlock";
 
 interface FavouriteSectionProps {
   pokemons: FavouritePokemon[];
@@ -55,30 +57,28 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           No favourite Pokémons found as yet.
         </p>
-        <button
-          className="btn-primary"
+        <LoadingButton
           onClick={() => fetchFavouritePokemons()}
-          disabled={loading}
+          loading={loading}
         >
-          {loading ? "Loading..." : "Show Your Favourite Pokémons"}
-        </button>
+          Show Your Favourite Pokémons
+        </LoadingButton>
       </div>
     );
   }
 
   return (
     <div className="pb-12">
+      <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100 text-center">
+        Your Favourites
+      </h1>
       {error ? (
-        <div className="w-full flex flex-col items-center">
-          <p className="mt-4 text-red-500">{error}</p>
-          <button
-            className="btn-primary mt-6"
-            onClick={() => fetchFavouritePokemons()}
-            disabled={loading}
-          >
-            {loading ? "Retrying..." : "Retry Fetching Favourite Pokémons"}
-          </button>
-        </div>
+        <ErrorBlock
+          error={error}
+          onRetry={() => fetchFavouritePokemons()}
+          loading={loading}
+          retryText="Retry Fetching Favourite Pokémons"
+        />
       ) : (
         <div className="w-full flex flex-col items-center">
           <div className="w-full max-w-7xl flex flex-col gap-6">
@@ -90,17 +90,15 @@ export function FavouriteSection({ pokemons }: FavouriteSectionProps) {
               />
             ))}
           </div>
-          <button
+          <LoadingButton
             className="btn-primary mt-6"
             onClick={() => fetchFavouritePokemons()}
-            disabled={loading}
+            loading={loading}
           >
-            {loading
-              ? "Loading..."
-              : pokemonList.length > 0
+            {pokemonList.length > 0
               ? "Refresh"
               : "Show Your Favourite Pokémons"}
-          </button>
+          </LoadingButton>
         </div>
       )}
     </div>

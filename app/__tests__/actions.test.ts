@@ -26,6 +26,10 @@ import { fetchPokemonTranslation } from "@/lib/shakespeare";
 import { getSessionId } from "@/lib/session";
 import { addFavourite, getFavourites, deleteFavourite } from "@/lib/favourites";
 
+jest.mock("next/cache", () => ({
+  revalidatePath: jest.fn(),
+}));
+
 jest.mock("@/lib/pokemon");
 const mockFetchPokemons = fetchPokemons as jest.MockedFunction<
   typeof fetchPokemons

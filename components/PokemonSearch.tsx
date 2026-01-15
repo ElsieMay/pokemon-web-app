@@ -4,6 +4,8 @@ import { searchPokemonByName } from "@/app/actions";
 import { useState } from "react";
 import { TranslationBlock } from "./TranslationBlock";
 import { PokemonDetails } from "@/types/pokemon";
+import { LoadingButton } from "./LoadingButton";
+import { ErrorBlock } from "./ErrorBlock";
 
 interface PokemonSearchProps {
   name?: string;
@@ -50,7 +52,7 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
 
   return (
     <div>
-      <div className="w-full max-w-xl mx-auto">
+      <div className="w-full max-w-xl mx-auto mb-20">
         <label htmlFor="pokemon-search" className="sr-only">
           Pokemon Name
         </label>
@@ -66,25 +68,22 @@ export function PokemonSearch({ name }: PokemonSearchProps) {
           className="w-full bg-transparent placeholder:text-slate-400 text-white text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-500 hover:border-slate-300 ring-4 ring-transparent focus:ring-slate-100 max-w-2xl"
         />
         {error ? (
-          <div className="w-full flex flex-col items-center">
-            <p className="mt-4 text-red-500">{error}</p>
-            <button
-              className="btn-primary mt-6"
-              onClick={() => fetchPokemonByName()}
-              disabled={loading}
-            >
-              {loading ? "Retrying..." : "Retry Search"}
-            </button>
-          </div>
+          <ErrorBlock
+            error={error}
+            onRetry={() => fetchPokemonByName()}
+            loading={loading}
+            retryText="Retry Search"
+          />
         ) : (
           <div className="w-full flex flex-col items-center">
-            <button
+            <LoadingButton
               className="btn-primary mt-6"
               onClick={() => fetchPokemonByName()}
-              disabled={loading || !pokemon.trim()}
+              loading={loading}
+              disabled={!pokemon.trim()}
             >
-              {loading ? "Loading..." : "Search for Pokemon"}
-            </button>
+              Search for Pokemon
+            </LoadingButton>
             {pokemonData && (
               <TranslationBlock key={pokemonData.id} pokemon={pokemonData} />
             )}

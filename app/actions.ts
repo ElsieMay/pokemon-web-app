@@ -14,6 +14,7 @@ import {
   rateLimitResponse,
 } from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
+import { revalidatePath } from "next/cache";
 
 /**
  * Server action to load a list of Pokemon species from the PokeAPI.
@@ -121,6 +122,8 @@ export async function addToFavourites(
       userId
     );
 
+    revalidatePath("/");
+
     return {
       success: true,
       data: savedFavourite,
@@ -182,6 +185,8 @@ export async function deleteFavouriteById(
 
     const userId = await getSessionId();
     await deleteFavourite(pokemonId, userId);
+
+    revalidatePath("/");
 
     return {
       success: true,

@@ -2,8 +2,7 @@ import { Pokemon } from "@/types/pokemon";
 import {
   createErrorResponse,
   getFirstEnglishDescription,
-  validateDescription,
-  validatePokemonName,
+  validateText,
   validateTranslationInput,
   validateUserId,
 } from "../utils";
@@ -117,53 +116,38 @@ describe("Rate Limiting", () => {
     });
   });
 
-  describe("validatePokemonName", () => {
+  describe("validateText", () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
-    it("should throw an error for names with invalid characters", () => {
-      expect(() => validatePokemonName("Pikachu!")).toThrow(
-        "Pokemon name contains invalid characters"
-      );
-    });
 
     it("should return the sanitized name for valid input", () => {
-      const name = validatePokemonName("  Bulbasaur  ");
+      const name = validateText("  Bulbasaur  ", { maxLength: 100 });
       expect(name).toBe("Bulbasaur");
     });
 
     it("should throw an error for names that are too long", () => {
-      const longName = "A".repeat(510);
-      expect(() => validatePokemonName(longName)).toThrow(
-        "Pokemon name too long"
-      );
+      expect(() =>
+        validateText("A".repeat(50), {
+          maxLength: 30,
+          fieldName: "Pokemon name",
+        })
+      ).toThrow("Pokemon name too long (max 30 characters)");
     });
 
-    it("should throw an error for names that are too short", () => {
-      expect(() => validatePokemonName("")).toThrow("Pokemon name is required");
+    it("should return empty string for whitespace-only input", () => {
+      const name = validateText("   ", { maxLength: 100 });
+      expect(name).toBe("");
     });
 
     it("should remove control characters from the name", () => {
-      const name = validatePokemonName("Char\x00mander");
+      const name = validateText("Char\x00mander", { maxLength: 100 });
       expect(name).toBe("Charmander");
     });
 
     it("should allow names with accented characters", () => {
-      const name = validatePokemonName("Flabébé");
+      const name = validateText("Flabébé", { maxLength: 100 });
       expect(name).toBe("Flabébé");
-    });
-  });
-
-  describe("validateDescription", () => {
-    it("should throw an error for descriptions that are too long", () => {
-      expect(() => validateDescription("A".repeat(300), 200)).toThrow(
-        "Description too long (max 200 characters)"
-      );
-    });
-
-    it("should return the sanitized description for valid input", () => {
-      const description = validateDescription("  A friendly Pokémon.  ", 50);
-      expect(description).toBe("A friendly Pokémon.");
     });
   });
 

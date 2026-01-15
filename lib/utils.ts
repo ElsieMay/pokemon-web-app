@@ -84,62 +84,6 @@ export function getFirstEnglishDescription(pokemon: Pokemon): string | null {
 }
 
 /**
- * Validates and sanitizes Pokemon name
- * - Removes leading/trailing whitespace
- * - Normalizes unicode characters (prevents unicode attacks)
- * - Validates against allowed characters (alphanumeric, hyphens, spaces)
- * - Prevents control characters
- */
-export function validatePokemonName(name: string): string {
-  const trimmed = name.trim();
-  if (!trimmed || trimmed.length === 0) {
-    throw new Error("Pokemon name is required");
-  }
-  if (trimmed.length > 100) {
-    throw new Error("Pokemon name too long");
-  }
-
-  // Allowed characters: letters, numbers, spaces, hyphens, apostrophes, periods, colons
-  const normalized = trimmed.normalize("NFC");
-  const withoutControlChars = normalized.replace(
-    /[\u0000-\u001F\u007F-\u009F]/g,
-    ""
-  );
-  const allowedPattern = /^[a-zA-Z0-9\s\-'.:\u00C0-\u024F\u1E00-\u1EFF]+$/;
-
-  if (!allowedPattern.test(withoutControlChars)) {
-    throw new Error("Pokemon name contains invalid characters");
-  }
-
-  return withoutControlChars;
-}
-
-/**
- * Validates and sanitizes descriptions
- * - Trims whitespace
- * - Validates length
- * - Normalizes unicode characters
- * - Removes control characters
- */
-export function validateDescription(
-  description: string,
-  maxLength: number
-): string {
-  const trimmed = description.trim();
-  if (trimmed.length > maxLength) {
-    throw new Error(`Description too long (max ${maxLength} characters)`);
-  }
-
-  const normalized = trimmed.normalize("NFC");
-  const sanitized = normalized.replace(
-    /[\u0000\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g,
-    ""
-  );
-
-  return sanitized;
-}
-
-/**
  * Validates and returns userId, throws if invalid
  * @param userId - Optional user ID to validate
  * @throws Error if userId format is invalid
@@ -210,4 +154,34 @@ export function createErrorResponse(
         : defaultMessage,
     status: 500,
   };
+}
+
+/**
+ * Validates and sanitizes text input
+ * - Trims whitespace
+ * - Validates length
+ * - Normalizes unicode characters
+ * - Removes control characters
+ *
+ * @param text - Input text to validate
+ * @param options - Validation options
+ * @returns Sanitized text
+ *
+ * @example
+ * ```ts
+ * const cleanText = validateText(userInput, { maxLength: 1000, fieldName: "Comment" });
+ * ```
+ */
+export function validateText(
+  text: string,
+  options: { maxLength: number; fieldName?: string } = { maxLength: 5000 }
+): string {
+  const trimmed = text.trim();
+  if (trimmed.length > options.maxLength) {
+    const field = options.fieldName;
+    throw new Error(`${field} too long (max ${options.maxLength} characters)`);
+  }
+  return trimmed
+    .normalize("NFC")
+    .replace(/[\u0000\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
 }

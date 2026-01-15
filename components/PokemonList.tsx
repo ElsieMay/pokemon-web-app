@@ -3,6 +3,8 @@
 import { loadPokemons } from "@/app/actions";
 import { PokemonList } from "@/types/pokemon";
 import { useState } from "react";
+import { LoadingButton } from "./LoadingButton";
+import { ErrorBlock } from "./ErrorBlock";
 
 interface PokemonListProps {
   /** Initial list of Pokemons */
@@ -53,13 +55,9 @@ export function Pokemons({ pokemons }: PokemonListProps) {
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           No Pokémon data available as yet.
         </p>
-        <button
-          className="btn-primary"
-          onClick={() => fetchPokemonList()}
-          disabled={loading}
-        >
-          {loading ? "Loading..." : "Load Pokémon"}
-        </button>
+        <LoadingButton onClick={() => fetchPokemonList()} loading={loading}>
+          Load Pokémon
+        </LoadingButton>
       </div>
     );
   }
@@ -67,16 +65,12 @@ export function Pokemons({ pokemons }: PokemonListProps) {
   return (
     <div className="pb-12">
       {error ? (
-        <div className="w-full flex flex-col items-center">
-          <p className="mt-4 text-red-500">{error}</p>
-          <button
-            className="btn-primary mt-6"
-            onClick={() => fetchPokemonList()}
-            disabled={loading}
-          >
-            {loading ? "Retrying..." : "Retry Load Pokemons"}
-          </button>
-        </div>
+        <ErrorBlock
+          error={error}
+          onRetry={() => fetchPokemonList()}
+          loading={loading}
+          retryText="Retry Load Pokemons"
+        />
       ) : (
         <div className="w-full flex flex-col items-center">
           <ul className="mt-4 grid grid-cols-3 gap-x-8 list-disc list-inside">
@@ -90,13 +84,13 @@ export function Pokemons({ pokemons }: PokemonListProps) {
             ))}
           </ul>
           {!pokemonList.results.length && (
-            <button
+            <LoadingButton
               className="btn-primary mt-6"
               onClick={() => fetchPokemonList()}
-              disabled={loading}
+              loading={loading}
             >
-              {loading ? "Loading..." : "Present Some Pokemon Names"}
-            </button>
+              Present Some Pokemon Names
+            </LoadingButton>
           )}
         </div>
       )}

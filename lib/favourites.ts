@@ -1,10 +1,6 @@
 import { query } from "./db";
 import { FavouritePokemon, FavouritePokemonSchema } from "@/types/favourite";
-import {
-  validatePokemonName,
-  validateDescription,
-  validateUserId,
-} from "./utils";
+import { validateText, validateUserId } from "./utils";
 
 /**
  * Add a Pokemon to favourites
@@ -17,12 +13,13 @@ export async function addFavourite(
   userId: string
 ): Promise<FavouritePokemon> {
   // Validate and sanitise inputs
-  const validatedName = validatePokemonName(pokemonName);
-  const validatedShakespearean = validateDescription(
-    shakespeareanDescription,
-    5000
-  );
-  const validatedOriginal = validateDescription(originalDescription, 5000);
+  const validatedName = validateText(pokemonName);
+  const validatedShakespearean = validateText(shakespeareanDescription, {
+    maxLength: 5000,
+  });
+  const validatedOriginal = validateText(originalDescription, {
+    maxLength: 5000,
+  });
   validateUserId(userId);
 
   const result = await query<FavouritePokemon>(
