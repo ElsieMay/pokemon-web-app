@@ -1,6 +1,6 @@
 "use server";
 
-import { getSessionId } from "@/lib/session";
+import { getOrCreateSession } from "@/lib/session";
 import { addFavourite, deleteFavourite, getFavourites } from "@/lib/favourites";
 import { FavouritePokemon } from "@/types/favourite";
 import { POKEMON_SPECIES_LIMIT } from "@/lib/config";
@@ -110,7 +110,7 @@ export async function addToFavourites(
   favourite: FavouritePokemon
 ): Promise<ApiResponse<FavouritePokemon>> {
   try {
-    const userId = await getSessionId();
+    const userId = await getOrCreateSession();
     if (await isRateLimited()) {
       return rateLimitResponse;
     }
@@ -156,7 +156,7 @@ export async function getAllFavourites(): Promise<
     if (await isRateLimited()) {
       return rateLimitResponse;
     }
-    const userId = await getSessionId();
+    const userId = await getOrCreateSession();
     const favourites = await getFavourites(userId);
 
     return {
@@ -182,7 +182,7 @@ export async function deleteFavouriteById(
       return rateLimitResponse;
     }
 
-    const userId = await getSessionId();
+    const userId = await getOrCreateSession();
     await deleteFavourite(pokemonId, userId);
 
     revalidatePath("/");

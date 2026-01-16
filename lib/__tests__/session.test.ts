@@ -1,11 +1,9 @@
-import { getSessionId } from "../session";
+import { getOrCreateSession } from "../session";
 
-// Mock implementations
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockDelete = jest.fn();
 
-// Mock cookies module
 jest.mock("next/headers", () => ({
   cookies: jest.fn(() =>
     Promise.resolve({
@@ -16,52 +14,72 @@ jest.mock("next/headers", () => ({
   ),
 }));
 
-// Mock randomUUID
-jest.mock("crypto", () => ({
-  randomUUID: jest.fn(() => "mocked-uuid"),
-}));
+// Mock crypto.randomUUID
+const mockRandomUUID = jest.fn();
+Object.defineProperty(global, "crypto", {
+  value: {
+    randomUUID: mockRandomUUID,
+  },
+  writable: true,
+});
 
 describe("Session Module", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGet.mockReturnValue(undefined);
+    mockRandomUUID.mockReturnValue("mocked-uuid");
   });
 
   const SESSION_ID = "pokemon_user_id";
   const MAX_AGE = 60 * 60 * 24 * 365; // 1 year max
   const USER_ID = "mocked-uuid";
 
-  test("should create a new session", async () => {
-    const sessionId = await getSessionId();
+  it("should create a new session", async () => {
+    mockGet.mockReturnValue(undefined);
 
-    expect(sessionId).toBe(USER_ID);
-    expect(mockGet).toHaveBeenCalledWith(SESSION_ID);
-    expect(mockSet).toHaveBeenCalledWith(SESSION_ID, USER_ID, {
+    const sessionId = await getOrCreateSession();
+
+    expect(sessionId).toBe("mocked-uuid");
+    expect(mockRandomUUID).toHaveBeenCalled();
+    expect(mockSet).toHaveBeenCalledWith({
+      name: SESSION_ID,
+      value: USER_ID,
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: MAX_AGE,
       path: "/",
     });
   });
 
-  test("should retrieve an existing session", () => {
+  it("should retrieve an existing session", () => {
     mockGet.mockReturnValue({ value: "existing-session-id" });
 
-    return getSessionId().then((sessionId) => {
+    return getOrCreateSession().then((sessionId) => {
       expect(sessionId).toBe("existing-session-id");
       expect(mockGet).toHaveBeenCalledWith(SESSION_ID);
       expect(mockSet).not.toHaveBeenCalled();
     });
   });
 
-  test("should invalidate a session", () => {
-    return getSessionId().then(async (sessionId) => {
-      expect(sessionId).toBe(USER_ID);
+  it("should invalidate a session", () => {
+    return getOrCreateSession().then(async (sessionId) => {
+      expect(sessionId).toBe("existing-session-id");
 
       await mockDelete(SESSION_ID);
 
       expect(mockDelete).toHaveBeenCalledWith(SESSION_ID);
     });
+  });
+
+  it("should throw an error if UUID generation fails", async () => {
+    mockGet.mockReturnValue(undefined);
+    mockRandomUUID.mockReturnValueOnce("");
+
+    await expect(getOrCreateSession()).rejects.toThrow(
+      "Failed to generate session ID"
+    );
+
+    expect(mockRandomUUID).toHaveBeenCalled();
+    expect(mockSet).not.toHaveBeenCalled();
   });
 });

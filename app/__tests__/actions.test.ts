@@ -23,7 +23,7 @@ import {
   rateLimitResponse,
 } from "@/lib/utils";
 import { fetchPokemonTranslation } from "@/lib/shakespeare";
-import { getSessionId } from "@/lib/session";
+import { getOrCreateSession } from "@/lib/session";
 import { addFavourite, getFavourites, deleteFavourite } from "@/lib/favourites";
 
 jest.mock("next/cache", () => ({
@@ -44,11 +44,7 @@ const mockTranslatePokemonDescription =
     typeof fetchPokemonTranslation
   >;
 
-jest.mock("@/lib/session");
 jest.mock("@/lib/favourites");
-const mockGetSessionId = getSessionId as jest.MockedFunction<
-  typeof getSessionId
->;
 const mockAddFavourite = addFavourite as jest.MockedFunction<
   typeof addFavourite
 >;
@@ -57,6 +53,11 @@ const mockGetFavourites = getFavourites as jest.MockedFunction<
 >;
 const mockDeleteFavourite = deleteFavourite as jest.MockedFunction<
   typeof deleteFavourite
+>;
+
+jest.mock("@/lib/session");
+const mockGetSessionId = getOrCreateSession as jest.MockedFunction<
+  typeof getOrCreateSession
 >;
 
 jest.mock("@/lib/utils", () => ({
@@ -426,7 +427,7 @@ describe("add to favourites", () => {
     mockGetSessionId.mockResolvedValue(mockSessionId);
     mockAddFavourite.mockResolvedValue(mockFavouritePokemon);
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     const response = await addToFavourites({
@@ -476,7 +477,7 @@ describe("add to favourites", () => {
       new FavouriteStoreError("Database Error", 500)
     );
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     await expect(
@@ -508,7 +509,7 @@ describe("add to favourites", () => {
     mockGetSessionId.mockResolvedValue(mockSessionId);
     mockAddFavourite.mockRejectedValue(new Error("Service Error"));
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     await expect(
@@ -544,7 +545,7 @@ describe("add to favourites", () => {
       )
     );
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     const response = await addToFavourites({
@@ -582,7 +583,7 @@ describe("getAllFavourites", () => {
     mockGetSessionId.mockResolvedValue(mockSessionId);
     mockAddFavourite.mockResolvedValue(mockFavouritePokemon);
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     const response = await getAllFavourites();
@@ -613,7 +614,7 @@ describe("getAllFavourites", () => {
       new FavouriteStoreError("Database Error", 500)
     );
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     await expect(getAllFavourites()).resolves.toEqual({
@@ -631,7 +632,7 @@ describe("getAllFavourites", () => {
     mockGetSessionId.mockResolvedValue(mockSessionId);
     mockDeleteFavourite.mockResolvedValue();
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     const response = await deleteFavouriteById(1);
@@ -648,7 +649,7 @@ describe("getAllFavourites", () => {
       new FavouriteStoreError("Database Error", 500)
     );
 
-    const sessionId = await getSessionId();
+    const sessionId = await getOrCreateSession();
     expect(sessionId).toBe(mockSessionId);
 
     await expect(deleteFavouriteById(1)).resolves.toEqual({

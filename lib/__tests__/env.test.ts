@@ -10,7 +10,7 @@ describe("env variables", () => {
     process.env = ORIGINAL_ENV;
   });
 
-  test("if testing, uses test defaults", async () => {
+  it("should use test defaults", async () => {
     process.env.JEST_WORKER_ID = "1";
     delete process.env.DATABASE_URL;
 
@@ -22,7 +22,7 @@ describe("env variables", () => {
     expect(env.NODE_ENV).toBe("test");
   });
 
-  test("validates required env variables and returns result", async () => {
+  it("validates required env variables and returns result", async () => {
     delete process.env.JEST_WORKER_ID;
     delete process.env.DATABASE_URL;
 

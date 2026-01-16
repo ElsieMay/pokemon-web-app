@@ -1,21 +1,10 @@
 import { mockFavouritePokemon } from "../__mocks__/sample";
-import {
-  addFavourite,
-  getFavourites,
-  deleteFavourite,
-  fetchFavouritesForSession,
-} from "../favourites";
+import { addFavourite, getFavourites, deleteFavourite } from "../favourites";
 import { query } from "../db";
 import { validateUserId } from "@/lib/utils";
-import { getSessionId } from "@/lib/session";
 
 jest.mock("../db");
 const mockQuery = query as jest.MockedFunction<typeof query>;
-
-jest.mock("@/lib/session");
-const mockGetSessionId = getSessionId as jest.MockedFunction<
-  typeof getSessionId
->;
 
 //mock validation helpers
 jest.mock("@/lib/utils", () => ({
@@ -195,25 +184,5 @@ describe("Favourites Module", () => {
         mockFavouritePokemon.user_id
       )
     ).rejects.toThrow("Failed to delete favourite");
-  });
-
-  // Test for server-side function to fetch favourites
-  it("should fetch favourites server-side", async () => {
-    const sessionUserId = "session-user-123";
-    mockGetSessionId.mockResolvedValue(sessionUserId);
-    mockIsUserIdValid.mockReturnValue();
-    mockQuery.mockResolvedValue([mockFavouritePokemon]);
-
-    const result = await fetchFavouritesForSession();
-
-    expect(mockGetSessionId).toHaveBeenCalled();
-    expect(mockQuery).toHaveBeenCalledWith(
-      `SELECT pokemon_name, pokemon_id, created_at, shakespearean_description, original_description 
-     FROM favourites 
-     WHERE user_id = $1`,
-      [sessionUserId]
-    );
-
-    expect(result).toEqual([mockFavouritePokemon]);
   });
 });

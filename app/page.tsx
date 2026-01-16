@@ -1,12 +1,12 @@
 import { Pokemons } from "@/components/PokemonList";
 import { FavouriteSection } from "@/components/FavouritesSection";
 import { PokemonSearch } from "@/components/PokemonSearch";
-import { fetchFavouritesForSession } from "@/lib/favourites";
-
-export const runtime = "edge";
+import { getOrCreateSession } from "@/lib/session";
+import { getFavourites } from "@/lib/favourites";
 
 export default async function Home() {
-  const favourites = await fetchFavouritesForSession();
+  const sessionId = await getOrCreateSession();
+  const favourites = await getFavourites(sessionId);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-900">

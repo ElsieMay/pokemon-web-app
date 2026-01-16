@@ -1,25 +1,31 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { env } from "./env";
 
-const SESSION_ID = "pokemon_user_id";
-const MAX_AGE = 60 * 60 * 24 * 365; // 1 year max
+const SESSION_COOKIE_NAME = "pokemon_user_id";
+const SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 /**
  * Get or create a user session ID from cookies
  */
-export async function getSessionId(): Promise<string> {
+export async function getOrCreateSession(): Promise<string> {
   const cookieStore = await cookies();
-  let sessionId = cookieStore.get(SESSION_ID)?.value;
+  let sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!sessionId) {
     sessionId = crypto.randomUUID();
-    cookieStore.set(SESSION_ID, sessionId, {
+
+    if (!sessionId) {
+      throw new Error("Failed to generate session ID");
+    }
+
+    cookieStore.set({
+      name: SESSION_COOKIE_NAME,
+      value: sessionId,
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: MAX_AGE,
+      maxAge: SESSION_MAX_AGE,
       path: "/",
     });
   }
