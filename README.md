@@ -192,6 +192,17 @@ View detailed coverage report: `coverage/lcov-report/index.html`
 - Check **Logs** tab for detailed error messages
 - Ensure Node.js version is set to 20.x
 
+## ⚠️ Known Limitations
+
+This is a portfolio project with intentional simplifications:
+
+- **No Authentication** - Uses anonymous cookie-based sessions; favorites don't sync across devices
+- **In-Memory Rate Limiting** - Not suitable for horizontal scaling (use Redis in production)
+- **FunTranslations API** - Free tier limited to 5 requests/hour; no translation caching implemented
+- **Single Database Connection** - Optimized for Neon's free tier; may need connection pooling at scale
+
+For production use, consider: proper auth (NextAuth.js/Clerk), distributed rate limiting (Redis/Upstash), translation caching, and CSRF protection.
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
