@@ -6,7 +6,7 @@ import { validateUserId } from "@/lib/utils";
 jest.mock("../db");
 const mockQuery = query as jest.MockedFunction<typeof query>;
 
-//mock validation helpers
+// mock validation helpers
 jest.mock("@/lib/utils", () => ({
   ...jest.requireActual("@/lib/utils"),
   validateUserId: jest.fn(),
@@ -32,7 +32,7 @@ describe("Favourites Module", () => {
       mockFavouritePokemon.pokemon_id,
       mockFavouritePokemon.shakespearean_description,
       mockFavouritePokemon.original_description,
-      mockFavouritePokemon.user_id
+      mockFavouritePokemon.user_id ?? ""
     );
 
     expect(mockQuery).toHaveBeenCalledWith(
@@ -59,7 +59,7 @@ describe("Favourites Module", () => {
         mockFavouritePokemon.pokemon_id,
         mockFavouritePokemon.shakespearean_description,
         mockFavouritePokemon.original_description,
-        mockFavouritePokemon.user_id
+        mockFavouritePokemon.user_id ?? ""
       )
     ).rejects.toThrow("Failed to add favourite");
   });
@@ -97,7 +97,7 @@ describe("Favourites Module", () => {
         mockFavouritePokemon.pokemon_id,
         mockFavouritePokemon.shakespearean_description,
         mockFavouritePokemon.original_description,
-        mockFavouritePokemon.user_id
+        mockFavouritePokemon.user_id ?? ""
       )
     ).rejects.toThrow("duplicate key value");
 
@@ -119,7 +119,7 @@ describe("Favourites Module", () => {
     mockIsUserIdValid.mockReturnValue();
     mockQuery.mockResolvedValue([mockFavouritePokemon]);
 
-    const result = await getFavourites(mockFavouritePokemon.user_id);
+    const result = await getFavourites(mockFavouritePokemon.user_id || "");
 
     expect(mockQuery).toHaveBeenCalledWith(
       `SELECT pokemon_name, pokemon_id, created_at, shakespearean_description, original_description 
@@ -149,7 +149,7 @@ describe("Favourites Module", () => {
 
     const result = await deleteFavourite(
       mockFavouritePokemon.pokemon_id,
-      mockFavouritePokemon.user_id
+      mockFavouritePokemon.user_id || ""
     );
 
     expect(mockQuery).toHaveBeenCalledWith(
@@ -181,7 +181,7 @@ describe("Favourites Module", () => {
     await expect(
       deleteFavourite(
         mockFavouritePokemon.pokemon_id,
-        mockFavouritePokemon.user_id
+        mockFavouritePokemon.user_id || ""
       )
     ).rejects.toThrow("Failed to delete favourite");
   });

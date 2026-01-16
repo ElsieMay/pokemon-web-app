@@ -12,20 +12,21 @@ interface PokemonListProps {
 }
 
 /**
- * Displays a list of Pokemon with infinite scroll.
+ * Displays a list of Pokemon with load more functionality.
  *
  * @param props - Component props
  * @returns A rendered list of Pokemon with fetch controls
  *
  * @example
  * ```tsx
- * <PokemonList pokemons={[]} />
+ * <Pokemons initialFavourites={initialPokemonList} />
  * ```
  */
 export function Pokemons({ initialFavourites }: PokemonListProps) {
   const [pokemonList, setPokemonList] = useState(initialFavourites);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   /**
    * Fetches more Pokemons and updates the list.
@@ -46,6 +47,10 @@ export function Pokemons({ initialFavourites }: PokemonListProps) {
     }
 
     setLoading(false);
+  };
+
+  const handleImageLoad = (pokemonName: string) => {
+    setLoadedImages((prev) => new Set(prev).add(pokemonName));
   };
 
   // Safety check for initial data
@@ -80,13 +85,22 @@ export function Pokemons({ initialFavourites }: PokemonListProps) {
                 className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
               >
                 {pokemon.spriteUrl && (
-                  <Image
-                    src={pokemon.spriteUrl}
-                    alt={pokemon.name}
-                    width={48}
-                    height={48}
-                    className="object-contain"
-                  />
+                  <div className="relative w-12 h-12">
+                    {!loadedImages.has(pokemon.name) && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-blue-500" />
+                      </div>
+                    )}
+                    <Image
+                      src={pokemon.spriteUrl}
+                      alt={pokemon.name}
+                      width={48}
+                      height={48}
+                      className="object-contain relative z-10"
+                      loading="lazy"
+                      onLoad={() => handleImageLoad(pokemon.name)}
+                    />
+                  </div>
                 )}
                 <span className="text-slate-700 dark:text-slate-300 capitalize font-medium">
                   {pokemon.name}

@@ -14,6 +14,14 @@ interface FavouriteSectionProps {
 // Create a global event - trigger refresh
 const REFRESH_EVENT = "favourites:refresh";
 
+/**
+ * A section to display all favourite Pokémons
+ * @param initialFavourites - Initial list of favourite Pokémons
+ * @example
+ * ```tsx
+ * <FavouriteSection initialFavourites={favourites} />
+ * ```
+ */
 export function FavouriteSection({ initialFavourites }: FavouriteSectionProps) {
   const [pokemonList, setPokemonList] = useState(initialFavourites);
   const [loading, setLoading] = useState(false);

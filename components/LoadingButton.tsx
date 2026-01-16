@@ -7,6 +7,9 @@ interface LoadingButtonProps {
   className?: string;
 }
 
+/**
+ * A button that shows a loading state when performing an action
+ */
 export function LoadingButton({
   loading,
   loadingText = "Loading...",

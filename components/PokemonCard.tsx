@@ -12,9 +12,9 @@ interface PokemonCardProps {
 
 /**
  * Displays all fields from the Pokemon (favourites) table in a styled card.
- *
- * @param props - Component props
- * @returns A rendered Pokemon card with all table fields
+ * @param {PokemonCardProps} props - The properties for the PokemonCard component.
+ * @param {FavouritePokemon} props.pokemon - The Pokemon data to display.
+ * @param {Function} [props.onDelete] - Optional callback function to trigger after deletion.
  *
  * @example
  * ```tsx

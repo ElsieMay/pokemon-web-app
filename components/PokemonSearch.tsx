@@ -14,7 +14,7 @@ interface PokemonSearchProps {
 
 /**
  * Searches for a Pokemon by name.
- * @param name - The name of the Pokemon to search for.
+ * @param {PokemonSearchProps} props - The properties for the PokemonSearch component.
  *
  * @example
  * <PokemonSearch name="Pikachu" />

@@ -7,7 +7,7 @@ import { PokemonFetchError } from "@/types/error";
  *
  * @param limit - Maximum number of Pokemon to fetch (default: 20)
  * @param offset - Starting position for pagination (default: 0)
- * @returns A promise resolving to an array of Pokemon objects (currently only includes names)
+ * @returns A promise resolving to an array of Pokemon objects
  * @throws {PokemonFetchError} When the API request fails or returns invalid data
  *
  * @example

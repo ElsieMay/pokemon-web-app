@@ -8,6 +8,14 @@ const mockLoadPokemons = loadPokemons as jest.MockedFunction<
   typeof loadPokemons
 >;
 
+jest.mock("next/image", () => ({
+  __esModule: true,
+  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img alt="" {...props} />;
+  },
+}));
+
 describe("Pokemon Fetch Species List", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -36,6 +44,22 @@ describe("Pokemon Fetch Species List", () => {
     await waitFor(() => {
       expect(screen.getByText("Wormadam")).toBeInTheDocument();
       expect(screen.getByText("ivysaur")).toBeInTheDocument();
+    });
+  });
+
+  // Test image loading spinner behavior
+  it("should show spinner while image loads and hide it after load", async () => {
+    render(
+      <Pokemons initialFavourites={{ results: mockPokemonSpeciesResponse }} />
+    );
+    const spinners = document.querySelectorAll(".animate-spin");
+    expect(spinners.length).toBeGreaterThan(0);
+    const wormadamImage = screen.getByAltText("Wormadam");
+    fireEvent.load(wormadamImage);
+
+    await waitFor(() => {
+      const remainingSpinners = document.querySelectorAll(".animate-spin");
+      expect(remainingSpinners.length).toBe(spinners.length - 1);
     });
   });
 

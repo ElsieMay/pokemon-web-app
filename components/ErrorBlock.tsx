@@ -7,6 +7,9 @@ interface ErrorBlockProps {
   retryText?: string;
 }
 
+/**
+ * A component to display an error message with a retry button
+ */
 export function ErrorBlock({
   error,
   onRetry,
