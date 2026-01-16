@@ -1,6 +1,6 @@
 import Home from "../page";
 import { moreFavourites } from "@/lib/__mocks__/sample";
-import { getOrCreateSession } from "@/lib/session";
+import { getExistingSession } from "@/lib/session";
 import { getFavourites } from "@/lib/favourites";
 
 jest.mock("@/lib/favourites");
@@ -9,8 +9,8 @@ const mockFetchFavouritesForSession = getFavourites as jest.MockedFunction<
 >;
 
 jest.mock("@/lib/session");
-const mockGetOrCreateSession = getOrCreateSession as jest.MockedFunction<
-  typeof getOrCreateSession
+const mockgetExistingSession = getExistingSession as jest.MockedFunction<
+  typeof getExistingSession
 >;
 
 describe("Home page", () => {
@@ -19,22 +19,23 @@ describe("Home page", () => {
   });
 
   it("loads and displays favourite pokemons", async () => {
-    mockGetOrCreateSession.mockResolvedValueOnce("test-session-id");
+    mockgetExistingSession.mockResolvedValueOnce("test-session-id");
     mockFetchFavouritesForSession.mockResolvedValueOnce(moreFavourites);
 
     const home = await Home();
 
     expect(home).toBeDefined();
-    expect(mockFetchFavouritesForSession).toHaveBeenCalled();
+    expect(mockFetchFavouritesForSession).toHaveBeenCalledWith(
+      "test-session-id"
+    );
   });
 
-  it("handles empty favourite pokemons", async () => {
-    mockGetOrCreateSession.mockResolvedValueOnce("test-session-id");
-    mockFetchFavouritesForSession.mockResolvedValueOnce([]);
+  it("handles no existing session", async () => {
+    mockgetExistingSession.mockResolvedValueOnce(null);
 
     const home = await Home();
 
     expect(home).toBeDefined();
-    expect(mockFetchFavouritesForSession).toHaveBeenCalled();
+    expect(mockFetchFavouritesForSession).not.toHaveBeenCalled();
   });
 });
