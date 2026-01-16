@@ -1,7 +1,4 @@
-import {
-  API_SHAKESPEARE_TRANSLATION_URL,
-  CACHE_REVALIDATE_TIME,
-} from "../config";
+import { API_SHAKESPEARE_TRANSLATION_URL } from "../config";
 import { fetchPokemonTranslation } from "../shakespeare";
 import { TranslationFetchError } from "@/types/error";
 
@@ -14,7 +11,7 @@ const getExpectedFetchConfig = (text: string) =>
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ text }),
-    next: { revalidate: CACHE_REVALIDATE_TIME },
+    cache: "no-store",
   });
 
 describe("fetch Shakespeare translation", () => {
@@ -116,5 +113,28 @@ describe("fetch Shakespeare translation", () => {
       getExpectedFetchConfig(pokemonDescription)
     );
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  // Test case for fetching Shakespeare translation - invalid response structure
+  it("should throw TranslationFetchError when response does not contain translation", async () => {
+    const mockResponse = {
+      contents: {
+        // 'translated' field is missing
+      },
+    };
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    await expect(fetchPokemonTranslation(pokemonDescription)).rejects.toThrow(
+      new TranslationFetchError("Invalid response from translation API", 500)
+    );
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      `${API_SHAKESPEARE_TRANSLATION_URL}`,
+      getExpectedFetchConfig(pokemonDescription)
+    );
   });
 });

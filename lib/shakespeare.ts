@@ -1,8 +1,5 @@
 import { TranslationFetchError } from "@/types/error";
-import {
-  API_SHAKESPEARE_TRANSLATION_URL,
-  CACHE_REVALIDATE_TIME,
-} from "./config";
+import { API_SHAKESPEARE_TRANSLATION_URL } from "./config";
 import { validateTranslationInput } from "./utils";
 
 /**
@@ -29,7 +26,7 @@ export async function fetchPokemonTranslation(description: string) {
       body: JSON.stringify({
         text: sanitized,
       }),
-      next: { revalidate: CACHE_REVALIDATE_TIME },
+      cache: "no-store",
     });
     if (!response.ok) {
       throw new TranslationFetchError(
@@ -38,6 +35,12 @@ export async function fetchPokemonTranslation(description: string) {
       );
     }
     const data = await response.json();
+    if (!data?.contents?.translated) {
+      throw new TranslationFetchError(
+        "Invalid response from translation API",
+        500
+      );
+    }
     return data.contents.translated;
   } catch (error) {
     if (error instanceof TranslationFetchError) throw error;
