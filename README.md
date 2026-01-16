@@ -63,11 +63,23 @@ cp .env.example .env.local
 Edit `.env.local` with your configuration:
 
 ```env
-# Database Connection (Neon or any PostgreSQL)
+# Database Connection (Neon or any PostgreSQL - Required)
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 
-# Optional: FunTranslations API Key (for higher rate limits)
-FUNTRANSLATIONS_API_KEY="your-api-key-here"
+# Neon Project IDs (Optional - only needed for Neon-specific features)
+NEON_ORG_ID="org-your-org-name-12345678"
+NEON_PROJECT_ID="your-project-name-12345678"
+
+# Rate Limiting Configuration (Optional - defaults provided)
+RATE_LIMIT_MAX=150           # Max requests per window
+RATE_LIMIT_WINDOW=60000      # Time window in milliseconds (60 seconds)
+
+# Database Pool Configuration (Optional - defaults provided)
+DB_POOL_MAX=1                # Maximum connection pool size
+DB_IDLE_TIMEOUT=30000        # Idle timeout in milliseconds
+
+# Environment (Optional - defaults to development)
+NODE_ENV="development"       # Options: development, production, test
 ```
 
 ### 4. Initialize the Database
