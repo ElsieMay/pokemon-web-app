@@ -50,6 +50,8 @@ export const PokemonListSchema = z.object({
   results: z.array(
     z.object({
       name: z.string(),
+      url: z.string(),
+      spriteUrl: z.string().optional(),
     })
   ),
 });

@@ -186,7 +186,7 @@ describe("tests for translated description block", () => {
 
     await waitFor(() => {
       expect(
-        getByText(mockPokemonNameAndDescription.description)
+        getByText(mockPokemonNameAndDescription.description ?? "")
       ).toBeInTheDocument();
     });
   });
@@ -206,7 +206,7 @@ describe("tests for translated description block", () => {
         pokemon_name: mockPokemonNameAndDescription.name,
         pokemon_id: mockPokemonNameAndDescription.id,
         shakespearean_description: ShakespeareTranslation,
-        original_description: mockPokemonNameAndDescription.description,
+        original_description: mockPokemonNameAndDescription.description ?? "",
       },
     });
 

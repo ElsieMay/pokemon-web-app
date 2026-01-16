@@ -1,7 +1,7 @@
 import {
-  mockAdditionalPokemonSpeciesResponse,
   mockFavouritePokemon,
   mockPokemonByNameResponse,
+  mockPokemonSpeciesResponse,
 } from "@/lib/__mocks__/sample";
 import {
   loadPokemons,
@@ -141,14 +141,14 @@ describe("Pokemon Fetch Species List", () => {
 
   // Test successful fetch of Pokemons List
   it("should fetch and return Pokemons successfully", async () => {
-    mockFetchPokemons.mockResolvedValue(mockAdditionalPokemonSpeciesResponse);
+    mockFetchPokemons.mockResolvedValue(mockPokemonSpeciesResponse);
 
     const response = await loadPokemons(0);
 
     expect(response.success).toBe(true);
     if (response.success) {
       expect(response.data).toEqual({
-        results: mockAdditionalPokemonSpeciesResponse,
+        results: mockPokemonSpeciesResponse,
       });
     }
     expect(mockFetchPokemons).toHaveBeenCalledWith(20, 0);

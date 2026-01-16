@@ -1,13 +1,26 @@
-export const mockPokemonSpeciesResponse = [
+import type { PokemonDetails } from "@/types/pokemon";
+import type { FavouritePokemon } from "@/types/favourite";
+
+export const mockPokemonSpeciesResponse: Array<{
+  name: string;
+  url: string;
+  spriteUrl: string;
+}> = [
   {
     name: "Wormadam",
+    url: "https://pokeapi.co/api/v2/pokemon-species/413/",
+    spriteUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/413.png",
   },
   {
     name: "ivysaur",
+    url: "https://pokeapi.co/api/v2/pokemon-species/2/",
+    spriteUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png",
   },
 ];
 
-export const mockAdditionalPokemonSpeciesResponse = [
+export const mockAdditionalPokemonSpeciesResponse: Array<{ name: string }> = [
   {
     name: "charmander",
   },
@@ -30,20 +43,20 @@ export const mockPokemonByNameResponse = {
       },
       version: {
         name: "diamond",
-        url: "https://pokeapi.co/api/v2/version/12/",
+        url: "",
       },
     },
   ],
   id: 2,
 };
 
-export const mockPokemonNameAndDescription = {
+export const mockPokemonNameAndDescription: PokemonDetails = {
   name: "Pikachu",
   description: "A yellow electric mouse.",
   id: 25,
 };
 
-export const mockFavouritePokemon = {
+export const mockFavouritePokemon: FavouritePokemon = {
   id: 1,
   pokemon_name: "Pikachu",
   pokemon_id: 25,
@@ -53,7 +66,7 @@ export const mockFavouritePokemon = {
   original_description: "A yellow mouse-like Pokémon.",
 };
 
-export const initialFavourites = [
+export const initialFavourites: FavouritePokemon[] = [
   mockFavouritePokemon,
   {
     id: 2,
@@ -66,7 +79,7 @@ export const initialFavourites = [
   },
 ];
 
-export const moreFavourites = [
+export const moreFavourites: FavouritePokemon[] = [
   {
     id: 3,
     pokemon_id: 9,

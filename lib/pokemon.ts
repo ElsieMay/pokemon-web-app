@@ -32,7 +32,17 @@ export async function fetchPokemons(limit: number = 20, offset: number = 0) {
       );
     }
     const data = await response.json();
-    return PokemonListSchema.parse(data).results;
+    const parsedData = PokemonListSchema.parse(data);
+
+    // Extract Pokemon ID from URL and add sprite URL
+    return parsedData.results.map((pokemon) => {
+      const urlParts = pokemon.url.split("/");
+      const id = urlParts[urlParts.length - 2];
+      return {
+        ...pokemon,
+        spriteUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+      };
+    });
   } catch (error) {
     if (error instanceof PokemonFetchError) throw error;
     throw new PokemonFetchError(

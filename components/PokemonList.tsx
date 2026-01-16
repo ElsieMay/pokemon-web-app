@@ -5,6 +5,7 @@ import { PokemonList } from "@/types/pokemon";
 import { useState } from "react";
 import { LoadingButton } from "./LoadingButton";
 import { ErrorBlock } from "./ErrorBlock";
+import Image from "next/image";
 
 interface PokemonListProps {
   initialFavourites?: PokemonList;
@@ -52,10 +53,10 @@ export function Pokemons({ initialFavourites }: PokemonListProps) {
     return (
       <div className="w-full flex flex-col items-center pb-12">
         <p className="text-gray-700 dark:text-gray-300 mb-4">
-          No Pokémon data available as yet.
+          No Pokémons have been loaded as yet.
         </p>
         <LoadingButton onClick={() => fetchPokemonList()} loading={loading}>
-          Load Pokémon
+          Do you want to load some Pokémon?
         </LoadingButton>
       </div>
     );
@@ -72,13 +73,24 @@ export function Pokemons({ initialFavourites }: PokemonListProps) {
         />
       ) : (
         <div className="w-full flex flex-col items-center">
-          <ul className="mt-4 grid grid-cols-3 gap-x-8 list-disc list-inside">
+          <ul className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {pokemonList.results.map((pokemon) => (
               <li
                 key={pokemon.name}
-                className="text-slate-700 dark:text-slate-300 capitalize"
+                className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
               >
-                {pokemon.name}
+                {pokemon.spriteUrl && (
+                  <Image
+                    src={pokemon.spriteUrl}
+                    alt={pokemon.name}
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                  />
+                )}
+                <span className="text-slate-700 dark:text-slate-300 capitalize font-medium">
+                  {pokemon.name}
+                </span>
               </li>
             ))}
           </ul>

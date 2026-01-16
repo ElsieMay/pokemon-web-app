@@ -95,10 +95,12 @@ describe("Pokemon Fetch Species List", () => {
       render(<Pokemons initialFavourites={null} />);
 
       expect(
-        screen.getByText("No Pokémon data available as yet.")
+        screen.getByText("No Pokémons have been loaded as yet.")
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Load Pokémon/i })
+        screen.getByRole("button", {
+          name: /Do you want to load some Pokémon?/i,
+        })
       ).toBeInTheDocument();
     });
 
@@ -107,10 +109,12 @@ describe("Pokemon Fetch Species List", () => {
       render(<Pokemons initialFavourites={{}} />);
 
       expect(
-        screen.getByText("No Pokémon data available as yet.")
+        screen.getByText("No Pokémons have been loaded as yet.")
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /Load Pokémon/i })
+        screen.getByRole("button", {
+          name: /Do you want to load some Pokémon?/i,
+        })
       ).toBeInTheDocument();
     });
 
@@ -125,7 +129,9 @@ describe("Pokemon Fetch Species List", () => {
       // @ts-expect-error - Testing null safety check
       render(<Pokemons initialFavourites={null} />);
 
-      const loadButton = screen.getByRole("button", { name: /Load Pokémon/i });
+      const loadButton = screen.getByRole("button", {
+        name: /Do you want to load some Pokémon?/i,
+      });
       fireEvent.click(loadButton);
 
       await waitFor(() => {

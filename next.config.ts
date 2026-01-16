@@ -8,6 +8,16 @@ const nextConfig: NextConfig = {
     },
   },
 
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        pathname: "/PokeAPI/sprites/**",
+      },
+    ],
+  },
+
   headers: async () => [
     {
       source: "/:path*",
