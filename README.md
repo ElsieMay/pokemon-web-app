@@ -114,11 +114,6 @@ pokemon-web-app/
 └── coverage/               # Test coverage reports
 ```
 
-## 🧪 Testing (100% Coverage)
-
-[![Tests](https://github.com/yourusername/pokemon-web-app/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/pokemon-web-app/actions)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](coverage/lcov-report)
-
 ```bash
 npm run test           # Run all tests
 npm run test:watch     # Watch mode
@@ -151,34 +146,13 @@ View detailed coverage report: `coverage/lcov-report/index.html`
 
 **Live App:** [https://pokemon-web-app-mxve.onrender.com](https://pokemon-web-app-mxve.onrender.com)
 
-#### Quick Deploy
+#### Quick Deploy - Render
 
-1. **Connect Repository:**
-
-   - Go to [Render Dashboard](https://dashboard.render.com/)
-   - Click "New +" → "Web Service"
-   - Connect your GitHub repository
-
-2. **Configure:**
-
-   - **Build Command:** `npm install && npm run build`
-   - **Start Command:** `npm start`
-   - **Environment Variables:** Add `DATABASE_URL` (required) and optionally `FUNTRANSLATIONS_API_KEY`
-
-3. **Deploy:**
-   - Click "Create Web Service"
-   - Render auto-deploys on every push to main branch
-
-#### Add Environment Variables
-
-Go to your service → **Environment** tab → Add:
-
-```
-DATABASE_URL=postgresql://user:password@host/database?sslmode=require
-NODE_ENV=production
-```
-
-**Important:** After adding environment variables, manually trigger a redeploy from the dashboard.
+- Go to [Render Dashboard](https://dashboard.render.com/)
+- Click "New +" → "Web Service"
+- Connect your GitHub repository
+- Add environment variables → **Environment** tab → Add as per .env.example
+- Manually trigger a redeploy from the dashboard
 
 ## 🐛 Troubleshooting
 
@@ -194,16 +168,6 @@ NODE_ENV=production
 4. Add `DATABASE_URL` with your Neon connection string
 5. Click **Save Changes**
 6. Manually redeploy: Click **Manual Deploy** → **Deploy latest commit**
-
-### Database Connection Issues
-
-**Error:** `Connection refused` or `SSL required`
-
-**Solution:**
-
-- Ensure `DATABASE_URL` is set in Render environment variables
-- For Neon, ensure `?sslmode=require` is appended to the connection string
-- Verify the database is accessible from Render's IP addresses
 
 ### Build or Start Command Fails
 
