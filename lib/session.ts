@@ -19,9 +19,7 @@ export async function getOrCreateSession(): Promise<string> {
       throw new Error("Failed to generate session ID");
     }
 
-    cookieStore.set({
-      name: SESSION_COOKIE_NAME,
-      value: sessionId,
+    cookieStore.set(SESSION_COOKIE_NAME, sessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -31,4 +29,10 @@ export async function getOrCreateSession(): Promise<string> {
   }
 
   return sessionId;
+}
+
+export async function getExistingSession(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  return sessionId || null;
 }
