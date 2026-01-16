@@ -2,6 +2,10 @@
 
 A Next.js web application that fetches Pokemon data from the PokeAPI and translates their descriptions into Shakespearean English using the FunTranslations API. Users can search for Pokemon, view translations, and save and delete their favorites.
 
+## 🌐 Live Demo
+
+**[View Live Application →](https://pokemon-web-app-mxve.onrender.com)**
+
 ## ✨ Features
 
 - 🔍 **Pokemon Search** - Search for any Pokemon by name or ID
@@ -15,13 +19,13 @@ A Next.js web application that fetches Pokemon data from the PokeAPI and transla
 
 ## 🛠️ Tech Stack
 
-- **Framework:** [Next.js 15](https://nextjs.org/) (App Router with React Server Components)
+- **Framework:** [Next.js 15.5.2](https://nextjs.org/) (App Router with React Server Components)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Database:** [Neon](https://neon.tech) (Serverless PostgreSQL)
 - **Styling:** [Tailwind CSS 4](https://tailwindcss.com/)
 - **Validation:** [Zod](https://zod.dev/)
 - **Testing:** [Jest](https://jestjs.io/) + [React Testing Library](https://testing-library.com/react)
-- **Deployment:** [Cloudflare Pages](https://pages.cloudflare.com/) (configured with `@cloudflare/next-on-pages`)
+- **Deployment:** [Render](https://render.com/) - Web Service
 
 ## 📋 Prerequisites
 
@@ -134,44 +138,62 @@ View detailed coverage report: `coverage/lcov-report/index.html`
 ### PokeAPI
 
 - **Base URL:** `https://pokeapi.co/api/v2/`
-- **Rate Limit:** None
 - **Documentation:** [pokeapi.co/docs](https://pokeapi.co/docs/v2)
 
 ### FunTranslations API
 
 - **Base URL:** `https://api.funtranslations.com/translate/shakespeare.json`
-- **Free Tier:** 5 requests/hour, 60 requests/day
-- **Paid Plans:** Available at [funtranslations.com](https://funtranslations.com/api/)
-- **Note:** The app handles rate limits gracefully by showing original text when limit is exceeded
+- **Documentation:** [funtranslations.com/api](https://funtranslations.com/api/)
 
 ## 🚢 Deployment
 
-### Deploy to Cloudflare Pages
+### Deployed on Render
 
-1. **Install Cloudflare CLI:**
+**Live App:** [https://pokemon-web-app-mxve.onrender.com](https://pokemon-web-app-mxve.onrender.com)
 
-```bash
-npm install -g wrangler
+#### Quick Deploy
+
+1. **Connect Repository:**
+
+   - Go to [Render Dashboard](https://dashboard.render.com/)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+
+2. **Configure:**
+
+   - **Build Command:** `npm install && npm run build`
+   - **Start Command:** `npm start`
+   - **Environment Variables:** Add `DATABASE_URL` (required) and optionally `FUNTRANSLATIONS_API_KEY`
+
+3. **Deploy:**
+   - Click "Create Web Service"
+   - Render auto-deploys on every push to main branch
+
+#### Add Environment Variables
+
+Go to your service → **Environment** tab → Add:
+
+```
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+NODE_ENV=production
 ```
 
-2. **Login to Cloudflare:**
-
-```bash
-wrangler login
-```
-
-3. **Build and Deploy:**
-
-```bash
-npm run deploy
-```
-
-4. **Set Environment Variables:**
-   - Go to your Cloudflare Pages dashboard
-   - Navigate to Settings > Environment Variables
-   - Add `DATABASE_URL` and optionally `FUNTRANSLATIONS_API_KEY`
+**Important:** After adding environment variables, manually trigger a redeploy from the dashboard.
 
 ## 🐛 Troubleshooting
+
+### Missing Environment Variables
+
+**Error:** `Environment validation failed: DATABASE_URL: Invalid input: expected string, received undefined`
+
+**Solution:**
+
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Click on your service
+3. Go to **Environment** tab
+4. Add `DATABASE_URL` with your Neon connection string
+5. Click **Save Changes**
+6. Manually redeploy: Click **Manual Deploy** → **Deploy latest commit**
 
 ### Database Connection Issues
 
@@ -179,29 +201,20 @@ npm run deploy
 
 **Solution:**
 
-- Ensure `DATABASE_URL` is correct in `.env.local`
-- For Neon, ensure `?sslmode=require` is appended
-- Check database is running and accessible
+- Ensure `DATABASE_URL` is set in Render environment variables
+- For Neon, ensure `?sslmode=require` is appended to the connection string
+- Verify the database is accessible from Render's IP addresses
 
-### Rate Limit Errors
+### Build or Start Command Fails
 
-**Error:** `429 Too Many Requests` from FunTranslations API
-
-**Solution:**
-
-- Free tier allows 5 requests/hour - upgrade for more requests
-
-### Build Errors
-
-**Error:** `Module not found` or TypeScript errors
+**Error:** Build or start command exits with error
 
 **Solution:**
 
-```bash
-rm -rf node_modules package-lock.json
-npm install
-npm run build
-```
+- Verify build command: `npm install && npm run build`
+- Verify start command: `npm start`
+- Check **Logs** tab for detailed error messages
+- Ensure Node.js version is set to 20.x
 
 ## 📝 License
 
